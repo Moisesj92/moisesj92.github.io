@@ -2592,12 +2592,7 @@ input, select, textarea {
 		-webkit-justify-content: space-between;
 		-ms-justify-content: space-between;
 		justify-content: space-between;
-		background-color: #1f1815;
-		background-attachment: scroll,								fixed;
-		background-image: url("images/overlay.png"), url("../../images/bg2.jpg");
-		background-position: top left,							center center;
-		background-repeat: repeat,								no-repeat;
-		background-size: auto,								cover;
+		background: none;
 		color: rgba(255, 255, 255, 0.5);
 		height: 100%;
 		left: 0;
@@ -2606,6 +2601,23 @@ input, select, textarea {
 		text-align: right;
 		top: 0;
 		width: 35%;
+		overflow-y: auto;
+		z-index: 1;
+	}
+
+	#header::before {
+		content: '';
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 35%;
+		height: 100%;
+		background-color: #1f1815;
+		background-image: url("images/overlay.png"), url("../../images/bg2.jpg");
+		background-position: top left, center center;
+		background-repeat: repeat, no-repeat;
+		background-size: auto, cover;
+		z-index: -1;
 	}
 
 		#header > * {
@@ -2969,8 +2981,7 @@ input, select, textarea {
 		display: none !important;
 	}
 
-	body.is-touch #header {
-		background-attachment: scroll;
+	body.is-touch #header::before {
 		background-size: auto, cover;
 	}
 
@@ -3000,6 +3011,10 @@ input, select, textarea {
 
 			#header {
 				padding: 6em 3em 3em 3em;
+				width: 30%;
+			}
+
+			#header::before {
 				width: 30%;
 			}
 
@@ -3055,9 +3070,6 @@ input, select, textarea {
 		/* Header */
 
 			#header {
-				background-attachment: scroll;
-				background-position: top left, center center;
-				background-size: auto,		cover;
 				left: auto;
 				padding: 6em 4em;
 				position: relative;
@@ -3065,6 +3077,16 @@ input, select, textarea {
 				top: auto;
 				width: 100%;
 				display: block;
+				overflow-y: visible;
+				background-color: #1f1815;
+				background-image: url("images/overlay.png"), url("../../images/bg2.jpg");
+				background-position: top left, center center;
+				background-repeat: repeat, no-repeat;
+				background-size: auto, cover;
+			}
+
+			#header::before {
+				display: none;
 			}
 
 				#header h1 {
