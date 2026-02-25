@@ -83,9 +83,11 @@ input, select, textarea {
 	}
 
 	body {
-		background: #1f1815 url("../../images/bg2.jpg") no-repeat center center fixed;
+		background: #f5eddc url("../../images/bg2.jpg") no-repeat center center fixed;
+		background-blend-mode: lighten;
 		background-size: cover;
 	}
+	/* Vintage beige base: #f5eddc */
 
 		body.is-preload *, body.is-preload *:before, body.is-preload *:after {
 			-moz-animation: none !important;
