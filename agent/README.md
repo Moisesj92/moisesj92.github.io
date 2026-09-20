@@ -63,6 +63,15 @@ pnpm test                                   # tokenizador, BM25, schema del corp
 pnpm live-check "¿Me pasas el CV?" "¿Y NeoWarehouse?"   # conversa por texto con la sesión de VOZ real, sin micrófono
 ```
 
+```bash
+pnpm evals                       # suite completa (~76 casos, ~10 min por el ritmo del free tier)
+pnpm evals --group rechazo       # solo un grupo
+pnpm evals --only kubernetes,cv  # ids que contengan alguno de los textos
+pnpm evals --no-judge            # solo reglas deterministas
+```
+
+Las evals (`evals/cases/*.yaml`) corren contra la ruta de texto con reglas deterministas y Gemini como juez. Umbral: rechazos 100 %, resto ≥ 90 %; el reporte queda en [`evals/reports/latest.md`](evals/reports/latest.md) y corre en CI cuando cambian `core/`, `tenants/` o `evals/`.
+
 `live-check` abre una sesión Gemini Live con el token del tenant, ejecuta los tools con el registry real y marca `LEAK` si el modelo narra JSON en vez de hablar. Es la forma de reproducir comportamientos de la voz desde la terminal.
 
 ## Deploy
