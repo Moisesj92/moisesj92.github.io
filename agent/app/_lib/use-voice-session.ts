@@ -37,6 +37,12 @@ export interface LogEntry {
 }
 
 const MAX_LOG = 60;
+/** Una tarjeta acompaña lo que se está diciendo; pasado esto, estorba. */
+const CARD_TTL_MS = 30_000;
+
+export interface ShownCard extends ProjectCard {
+  shownAt: number;
+}
 
 /**
  * Orquesta una sesión de voz: micrófono → proveedor → parlantes, y el
@@ -50,7 +56,7 @@ export function useVoiceSession(tenant?: string) {
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
-  const [cards, setCards] = useState<ProjectCard[]>([]);
+  const [cards, setCards] = useState<ShownCard[]>([]);
   const [download, setDownload] = useState<DownloadOffer | null>(null);
 
   const mic = useRef<MicCapture | null>(null);
@@ -87,7 +93,8 @@ export function useVoiceSession(tenant?: string) {
   const applyUi = useCallback((ui: ToolUiEffect | undefined) => {
     if (!ui) return;
     if (ui.kind === "project-card") {
-      setCards((cs) => [ui.card, ...cs.filter((c) => c.id !== ui.card.id)].slice(0, 3));
+      const shown = { ...ui.card, shownAt: Date.now() };
+      setCards((cs) => [shown, ...cs.filter((c) => c.id !== ui.card.id)].slice(0, 3));
     } else if (ui.kind === "download") {
       setDownload({ url: ui.url, label: ui.label });
     }
@@ -260,6 +267,22 @@ export function useVoiceSession(tenant?: string) {
     }
   }, [fail, onEvent, pushLog, tenant]);
 
+  const dismissCard = useCallback((id: string) => {
+    setCards((cs) => cs.filter((c) => c.id !== id));
+  }, []);
+
+  const dismissDownload = useCallback(() => setDownload(null), []);
+
+  // Las tarjetas caducan solas: se revisa una vez por segundo mientras haya alguna.
+  useEffect(() => {
+    if (cards.length === 0) return;
+    const t = setInterval(() => {
+      const cutoff = Date.now() - CARD_TTL_MS;
+      setCards((cs) => (cs.some((c) => c.shownAt < cutoff) ? cs.filter((c) => c.shownAt >= cutoff) : cs));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cards.length]);
+
   const stop = useCallback(async () => {
     await teardown();
     setState("idle");
@@ -272,5 +295,18 @@ export function useVoiceSession(tenant?: string) {
     };
   }, [teardown]);
 
-  return { state, error, level, transcript, log, expiresAt, cards, download, start, stop };
+  return {
+    state,
+    error,
+    level,
+    transcript,
+    log,
+    expiresAt,
+    cards,
+    download,
+    dismissCard,
+    dismissDownload,
+    start,
+    stop,
+  };
 }
