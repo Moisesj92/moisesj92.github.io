@@ -59,8 +59,11 @@ pnpm dev
 Abrir <http://localhost:3000> en Chrome de escritorio, pulsar **Iniciar**, aceptar el micrófono. Para trabajar el corpus sin gastar voz: <http://localhost:3000/debug>.
 
 ```bash
-pnpm test        # tokenizador, BM25, schema del corpus y el corpus real del tenant
+pnpm test                                   # tokenizador, BM25, schema del corpus, tools y el corpus real
+pnpm live-check "¿Me pasas el CV?" "¿Y NeoWarehouse?"   # conversa por texto con la sesión de VOZ real, sin micrófono
 ```
+
+`live-check` abre una sesión Gemini Live con el token del tenant, ejecuta los tools con el registry real y marca `LEAK` si el modelo narra JSON en vez de hablar. Es la forma de reproducir comportamientos de la voz desde la terminal.
 
 ## Deploy
 
