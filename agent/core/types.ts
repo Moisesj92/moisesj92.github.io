@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { AgentConfig } from "./config/schema";
+import type { MessageStore } from "./storage/types";
 
 /**
  * Un documento del corpus de un tenant. Se carga desde Markdown con
@@ -14,6 +15,8 @@ export interface Document {
   tags: string[];
   technologies: string[];
   type: "situation" | "project" | "hard-fact" | "faq";
+  /** URL pública del proyecto, si la tiene (alimenta la tarjeta de `mostrar_proyectos`) */
+  url?: string;
   body: string;
 }
 
@@ -28,15 +31,37 @@ export interface Retriever {
 export interface ToolContext {
   tenant: AgentConfig;
   retriever: Retriever;
+  documents: Document[];
+  store: MessageStore;
   sessionId: string;
+  /** hash del IP del visitante; solo lo usa el rate limit */
+  ipHash: string;
 }
+
+/** Tarjeta de proyecto que la UI despliega mientras el agente habla. */
+export interface ProjectCard {
+  id: string;
+  title: string;
+  company?: string;
+  period?: string;
+  technologies: string[];
+  url?: string;
+  summary: string;
+}
+
+/** Efecto en la UI que acompaña al resultado de un tool. */
+export type ToolUiEffect =
+  | { kind: "project-cards"; cards: ProjectCard[] }
+  | { kind: "download"; url: string; label: string };
 
 export interface ToolResult {
   ok: boolean;
   data?: unknown;
   error?: string;
-  /** ids de los documentos que respaldan el resultado (atribución visible, Fase 2) */
+  /** ids de los documentos que respaldan el resultado (atribución visible) */
   sources?: string[];
+  /** lo que la UI debe mostrar; el modelo no lo ve */
+  ui?: ToolUiEffect;
 }
 
 /**

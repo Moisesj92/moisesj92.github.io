@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { dismissBtn, ProjectCard } from "./_components/project-card";
 import { useVoiceSession, type SessionState } from "./_lib/use-voice-session";
 
 const LABEL: Record<SessionState, string> = {
@@ -11,16 +14,52 @@ const LABEL: Record<SessionState, string> = {
   error: "Error",
 };
 
+interface TenantInfo {
+  displayName: string;
+  links: { cvPdf?: string };
+}
+
 export default function Home() {
-  const { state, error, level, transcript, log, expiresAt, start, stop } = useVoiceSession();
+  const [tenant, setTenant] = useState<TenantInfo | null>(null);
+  useEffect(() => {
+    fetch("/api/tenant")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setTenant)
+      .catch(() => {});
+  }, []);
+
+  const {
+    state,
+    error,
+    level,
+    transcript,
+    log,
+    expiresAt,
+    cards,
+    download,
+    dismissCard,
+    dismissDownload,
+    start,
+    stop,
+  } = useVoiceSession();
   const busy = state === "requesting-mic" || state === "connecting";
   const active = state === "listening" || state === "speaking";
 
   return (
     <main>
-      <h1>Agente de voz</h1>
-      <p style={{ color: "var(--muted)" }}>
-        Fase 0: walking skeleton. Habla y escucha la respuesta; interrúmpelo a media frase.
+      <h1 style={{ marginBottom: 4 }}>{tenant ? `Habla con el asistente de ${tenant.displayName}` : "Agente de voz"}</h1>
+      <p style={{ color: "var(--muted)", marginTop: 0 }}>
+        Pregúntale por su experiencia, sus proyectos o déjale un mensaje.
+        {tenant?.links.cvPdf && (
+          <>
+            {" "}
+            <a href={tenant.links.cvPdf} target="_blank" rel="noopener noreferrer">
+              CV (PDF)
+            </a>
+          </>
+        )}
+        {" · "}
+        <Link href="/debug">modo texto</Link>
       </p>
 
       <section style={{ display: "flex", alignItems: "center", gap: 16, margin: "24px 0" }}>
@@ -68,12 +107,40 @@ export default function Home() {
         </p>
       )}
 
+      {download && (
+        <div style={{ position: "relative", display: "inline-block", marginBottom: 16, paddingRight: 28 }}>
+          <a
+            href={download.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...btn("var(--accent)"), display: "inline-block", textDecoration: "none" }}
+          >
+            ⬇ {download.label}
+          </a>
+          <button type="button" onClick={dismissDownload} aria-label="Descartar descarga" style={dismissBtn}>
+            ×
+          </button>
+        </div>
+      )}
+      {cards.length > 0 && (
+        <section style={{ display: "grid", gap: 12, marginBottom: 16 }} aria-live="polite">
+          {cards.map((c) => (
+            <ProjectCard key={c.id} card={c} onDismiss={() => dismissCard(c.id)} />
+          ))}
+        </section>
+      )}
+
       <h2 style={{ fontSize: 16 }}>Transcripción</h2>
       <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, minHeight: 80 }}>
         {transcript.length === 0 && <span style={{ color: "var(--muted)" }}>—</span>}
         {transcript.map((line, i) => (
           <p key={i} style={{ margin: "4px 0" }}>
             <strong>{line.role === "user" ? "Tú" : "Agente"}:</strong> {line.text}
+            {line.sources && line.sources.length > 0 && (
+              <span style={{ display: "block", color: "var(--muted)", fontSize: 12 }}>
+                fuentes: {line.sources.join(", ")}
+              </span>
+            )}
           </p>
         ))}
       </div>

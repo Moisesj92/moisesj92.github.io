@@ -26,29 +26,29 @@ Resumen para no volver a discutirlas a mitad del desarrollo.
 
 **Objetivo:** hablarle al micrófono y que una voz te conteste. Nada más. Sin contenido tuyo, sin UI.
 
-**Regla de corte:** si al final del día 2 no escuchas una respuesta, el problema es de setup y hay que resolverlo antes de invertir en lo demás.
+**Regla de corte:** si al final del día 2 no escuchas una respuesta, el problema es de setup y hay que resolverlo antes de invertir en lo demás. ✅ Cerrada 2026-09-19 (PR #6).
 
 ### Setup
 
-- [ ] Repo nuevo, público desde el día uno. Nombre neutro (`voice-agent`, no `arsenio-bot`) — es un producto con tenants, no un juguete personal
-- [ ] Next.js con TypeScript y App Router
-- [ ] Estructura de carpetas base, vacía pero creada:
+- [x] (carpeta `agent/` en este repo, ADR-001) Repo nuevo, público desde el día uno. Nombre neutro (`voice-agent`, no `arsenio-bot`) — es un producto con tenants, no un juguete personal
+- [x] Next.js con TypeScript y App Router
+- [x] Estructura de carpetas base, vacía pero creada:
   - `/core` — motor: sesión, runtime de tools, recuperación, guardrails
   - `/providers` — adaptadores de voz
   - `/tenants/arsenio` — `agent.yaml` + `corpus/`
   - `/evals` — casos y runner
-- [ ] Deploy a Vercel con el esqueleto vacío. Despliega antes de tener nada: si dejas el deploy para el final, el final se corre una semana
-- [ ] Variables de entorno en Vercel, nunca en el repo
-- [ ] Cuenta en Google AI Studio y API key del free tier
+- [x] Deploy a Vercel con el esqueleto vacío. Despliega antes de tener nada: si dejas el deploy para el final, el final se corre una semana
+- [x] Variables de entorno en Vercel, nunca en el repo
+- [x] Cuenta en Google AI Studio y API key del free tier
 
 ### La rebanada de punta a punta
 
-- [ ] Route handler `POST /api/session` que abre la conexión con Gemini Live desde el servidor
-- [ ] WebSocket entre navegador y tu backend (topología server-to-server: el frontend nunca ve la API key)
-- [ ] `getUserMedia` + captura de micrófono, y streaming del audio al backend
-- [ ] Reproducción del audio de vuelta con `AudioWorklet` (no `<audio>`: necesitas control de buffer para cortar la reproducción al interrumpir)
-- [ ] Botón de start/stop y manejo del permiso de micrófono denegado
-- [ ] Verificar que la interrupción funciona: háblale encima mientras responde y confirma que se calla
+- [x] (token efímero, ADR-002) Route handler `POST /api/session` que abre la conexión con Gemini Live desde el servidor
+- [x] (navegador → Gemini directo con token bloqueado, ADR-002) WebSocket entre navegador y tu backend (topología server-to-server: el frontend nunca ve la API key)
+- [x] `getUserMedia` + captura de micrófono, y streaming del audio al backend
+- [x] Reproducción del audio de vuelta con `AudioWorklet` (no `<audio>`: necesitas control de buffer para cortar la reproducción al interrumpir)
+- [x] Botón de start/stop y manejo del permiso de micrófono denegado
+- [x] Verificar que la interrupción funciona: háblale encima mientras responde y confirma que se calla
 
 ### Trampas conocidas
 
@@ -66,30 +66,30 @@ Resumen para no volver a discutirlas a mitad del desarrollo.
 
 ### Schema del corpus
 
-- [ ] Definir el frontmatter de cada documento: `id`, `empresa`, `periodo`, `rol`, `tags[]`, `tecnologias[]`, `tipo` (situación / proyecto / dato-duro / respuesta-a-pregunta-frecuente)
-- [ ] Escribir un documento de ejemplo completo y dejarlo como plantilla
-- [ ] Validación del frontmatter con Zod al cargar: un doc mal formado debe romper el build, no fallar en silencio en producción
+- [x] Definir el frontmatter de cada documento: `id`, `empresa`, `periodo`, `rol`, `tags[]`, `tecnologias[]`, `tipo` (situación / proyecto / dato-duro / respuesta-a-pregunta-frecuente)
+- [x] Escribir un documento de ejemplo completo y dejarlo como plantilla
+- [x] Validación del frontmatter con Zod al cargar: un doc mal formado debe romper el build, no fallar en silencio en producción
 
 ### Escribir el contenido (esta es la tarea larga)
 
-- [ ] **Capa 0** — ficha de identidad, máximo ~2k tokens: línea de tiempo, empresas, stack, una línea por proyecto, disponibilidad, contacto. Va fija al inicio del system prompt para que entre en caché
-- [ ] **Capa 1** — 20 a 30 situaciones, ~300 palabras cada una. Formato: contexto, qué hiciste tú específicamente, decisión técnica que tomaste, resultado. Las métricas van literales, nunca redondeadas
-- [ ] **Los "no"** — un documento por cada pregunta predecible sin respuesta obvia: expectativa de renta, tecnologías que no has usado, años exactos por stack, reubicación, por qué dejaste cada trabajo, el salto entre gestión de planta y desarrollo. Una respuesta redactada vale más que cualquier guardrail
-- [ ] Revisar que ningún documento contenga datos que no quieras públicos
+- [x] **Capa 0** — ficha de identidad, máximo ~2k tokens: línea de tiempo, empresas, stack, una línea por proyecto, disponibilidad, contacto. Va fija al inicio del system prompt para que entre en caché
+- [x] **Capa 1** — 20 a 30 situaciones, ~300 palabras cada una. Formato: contexto, qué hiciste tú específicamente, decisión técnica que tomaste, resultado. Las métricas van literales, nunca redondeadas
+- [x] **Los "no"** — un documento por cada pregunta predecible sin respuesta obvia: expectativa de renta, tecnologías que no has usado, años exactos por stack, reubicación, por qué dejaste cada trabajo, el salto entre gestión de planta y desarrollo. Una respuesta redactada vale más que cualquier guardrail
+- [x] Revisar que ningún documento contenga datos que no quieras públicos
 
 ### El motor
 
-- [ ] Cargador del corpus: lee los `.md` del tenant, parsea frontmatter, construye el índice en build time
-- [ ] Interfaz `Retriever` con un solo método (`buscar(consulta, limite) => Documento[]`). Esta firma no cambia nunca
-- [ ] Implementación `BM25Retriever` con filtro previo por tags. Sin dependencias pesadas
-- [ ] System prompt: persona, capa 0, reglas de dominio cerrado, frase exacta de rechazo, regla dura sobre números, instrucción de turnos de 2-3 frases, respuesta en el idioma del visitante
-- [ ] Runtime de tools en el servidor, con `buscar_experiencia` como primer tool
-- [ ] Endpoint de chat de texto que ya usa todo lo anterior
-- [ ] CLI o página `/debug` que muestra qué documentos se recuperaron en cada turno — esto te salva horas
+- [x] Cargador del corpus: lee los `.md` del tenant, parsea frontmatter, construye el índice en build time
+- [x] Interfaz `Retriever` con un solo método (`buscar(consulta, limite) => Documento[]`). Esta firma no cambia nunca
+- [x] Implementación `BM25Retriever` con filtro previo por tags. Sin dependencias pesadas
+- [x] System prompt: persona, capa 0, reglas de dominio cerrado, frase exacta de rechazo, regla dura sobre números, instrucción de turnos de 2-3 frases, respuesta en el idioma del visitante
+- [x] Runtime de tools en el servidor, con `buscar_experiencia` como primer tool
+- [x] Endpoint de chat de texto que ya usa todo lo anterior
+- [x] CLI o página `/debug` que muestra qué documentos se recuperaron en cada turno — esto te salva horas
 
 ### Criterio de salida de la fase
 
-Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te ocurran, y no inventa nada.
+Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te ocurran, y no inventa nada. ✅ 2026-09-20
 
 ---
 
@@ -99,7 +99,7 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ### Tools
 
-- [ ] `buscar_experiencia(consulta)` — ya existe de la Fase 1, ahora conectado a la sesión de voz
+- [x] `buscar_experiencia(consulta)` — ya existe de la Fase 1, ahora conectado a la sesión de voz
 - [ ] `mostrar_proyecto(id)` — la página despliega la tarjeta del proyecto **mientras** el agente lo cuenta. Voz y UI sincronizadas es el efecto que la gente recuerda
 - [ ] `descargar_cv()` — dispara la descarga del PDF que ya generas desde el mismo YAML
 - [ ] `dejar_mensaje(nombre, email, texto)` — captura el contacto por voz. Este es el único tool con efecto secundario en todo el sistema, y esa restricción es deliberada
@@ -142,7 +142,7 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 - [ ] Turnstile invisible antes de emitir cualquier sesión de voz
 - [ ] Token de sesión de un solo uso, TTL de segundos
-- [ ] Tope duro de sesión en el servidor (5 min), con aviso al minuto 4
+- [x] Tope duro de sesión en el servidor (5 min) — vía `expireTime` del token (ADR-005); aviso al minuto 4 pendiente
 - [ ] Rate limit por IP y por día
 - [ ] Contador de presupuesto persistido, con kill-switch
 - [ ] Alerta a tu correo al 50% del presupuesto
@@ -166,10 +166,10 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 No es una fase aparte: son cuatro reglas que sigues desde el commit uno para que el segundo tenant sea una carpeta y no un fork.
 
-- [ ] **Nada del contenido de Arsenio vive fuera de `/tenants/arsenio/`.** Si aparece tu nombre hardcodeado en `/core`, es un bug
-- [ ] **`agent.yaml` define todo lo configurable**: persona, voz, idioma, tools habilitados, topes de costo, frase de rechazo, colores de marca
-- [ ] **Las interfaces son el contrato**: `Retriever`, `VoiceProvider`, `Tool`. El core programa contra ellas, nunca contra una implementación
-- [ ] **El tenant se resuelve por subdominio o path**, aunque hoy solo haya uno
+- [x] **Nada del contenido de Arsenio vive fuera de `/tenants/arsenio/`.** Si aparece tu nombre hardcodeado en `/core`, es un bug
+- [x] **`agent.yaml` define todo lo configurable**: persona, voz, idioma, tools habilitados, topes de costo, frase de rechazo, colores de marca
+- [x] **Las interfaces son el contrato**: `Retriever`, `VoiceProvider`, `Tool`. El core programa contra ellas, nunca contra una implementación
+- [x] **El tenant se resuelve por subdominio o path**, aunque hoy solo haya uno
 
 ### La prueba de fuego
 
@@ -224,7 +224,7 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 
 - [ ] Semana 3: ¿pagas el proveedor premium o te quedas en free tier? Decídelo con el proyecto ya funcionando y el costo por sesión medido
 - [ ] ¿El segundo tenant es Bendito Residuo o un tenant de demo ficticio? El real es más convincente pero te obliga a pensar en datos de clientes
-- [ ] ¿Repo público desde el día uno o al terminar? Público desde el día uno genera historial de commits creíble, pero expone los tropiezos
+- [x] ¿Repo público desde el día uno o al terminar? Público desde el día uno genera historial de commits creíble, pero expone los tropiezos
 
 ---
 

@@ -6,6 +6,7 @@ period: 10/2025 – 04/2026
 role: Desarrollador Full Stack (independiente)
 tags: [e-commerce, tienda online, proyecto independiente, emprendimiento]
 technologies: [React, Next.js, Node.js, PostgreSQL]
+url: https://www.tiendacapullito.cl/
 ---
 Tienda Capullito es un e-commerce para un emprendimiento de regalos, desarrollado por Arsenio como proyecto independiente entre octubre de 2025 y abril de 2026.
 

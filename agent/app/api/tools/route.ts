@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
-import { getTenantRuntime } from "@/core/runtime";
+import { getTenantRuntime, toolContext } from "@/core/runtime";
+import { hashIp, requestIp } from "@/core/session/visitor";
 import { UnknownToolError } from "@/core/tools/registry";
 
 export const runtime = "nodejs";
@@ -28,18 +29,19 @@ export async function POST(request: Request) {
   const { tenant, sessionId, call } = parsed.data;
 
   try {
-    const { config, registry, retriever } = await getTenantRuntime(resolveTenantId(tenant));
+    const rt = await getTenantRuntime(resolveTenantId(tenant));
+    const { registry } = rt;
     if (!registry.has(call.name)) {
       return NextResponse.json(
         { error: `Tool desconocido: ${call.name}` },
         { status: 404 },
       );
     }
-    const result = await registry.run(call.name, call.args ?? {}, {
-      tenant: config,
-      retriever,
-      sessionId,
-    });
+    const result = await registry.run(
+      call.name,
+      call.args ?? {},
+      toolContext(rt, sessionId, hashIp(requestIp(request))),
+    );
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     if (err instanceof TenantNotFoundError) {
