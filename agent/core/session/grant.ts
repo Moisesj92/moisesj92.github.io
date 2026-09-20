@@ -9,6 +9,10 @@ export interface SessionGrant {
   model: string;
   /** ISO: cuándo Gemini deja de aceptar mensajes en esta sesión (tope duro, ADR-005) */
   expiresAt: string;
+  /** ISO: hasta cuándo se puede abrir la sesión con este token (precalentado) */
+  connectBy: string;
+  /** saludo literal con el que el agente abre la conversación */
+  greeting: string;
 }
 
 /** Margen para que el token no venza antes que el cierre de sesión que ve el usuario. */
@@ -75,5 +79,7 @@ export async function createSessionGrant(
     token: token.name,
     model: config.voice.model,
     expiresAt: expireTime.toISOString(),
+    connectBy: newSessionExpireTime.toISOString(),
+    greeting: config.voice.greeting,
   };
 }
