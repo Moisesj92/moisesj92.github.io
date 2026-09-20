@@ -1,5 +1,6 @@
 "use client";
 
+import { ProjectCard } from "./_components/project-card";
 import { useVoiceSession, type SessionState } from "./_lib/use-voice-session";
 
 const LABEL: Record<SessionState, string> = {
@@ -12,7 +13,8 @@ const LABEL: Record<SessionState, string> = {
 };
 
 export default function Home() {
-  const { state, error, level, transcript, log, expiresAt, start, stop } = useVoiceSession();
+  const { state, error, level, transcript, log, expiresAt, cards, download, start, stop } =
+    useVoiceSession();
   const busy = state === "requesting-mic" || state === "connecting";
   const active = state === "listening" || state === "speaking";
 
@@ -68,12 +70,35 @@ export default function Home() {
         </p>
       )}
 
+      {download && (
+        <a
+          href={download.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ ...btn("var(--accent)"), display: "inline-block", textDecoration: "none", marginBottom: 16 }}
+        >
+          ⬇ {download.label}
+        </a>
+      )}
+      {cards.length > 0 && (
+        <section style={{ display: "grid", gap: 12, marginBottom: 16 }} aria-live="polite">
+          {cards.map((c) => (
+            <ProjectCard key={c.id} card={c} />
+          ))}
+        </section>
+      )}
+
       <h2 style={{ fontSize: 16 }}>Transcripción</h2>
       <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, minHeight: 80 }}>
         {transcript.length === 0 && <span style={{ color: "var(--muted)" }}>—</span>}
         {transcript.map((line, i) => (
           <p key={i} style={{ margin: "4px 0" }}>
             <strong>{line.role === "user" ? "Tú" : "Agente"}:</strong> {line.text}
+            {line.sources && line.sources.length > 0 && (
+              <span style={{ display: "block", color: "var(--muted)", fontSize: 12 }}>
+                fuentes: {line.sources.join(", ")}
+              </span>
+            )}
           </p>
         ))}
       </div>
