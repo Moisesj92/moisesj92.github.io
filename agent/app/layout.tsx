@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Agente de voz de dominio cerrado con recuperación trazable.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <body>{children}</body>

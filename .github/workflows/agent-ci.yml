@@ -1,0 +1,35 @@
+# Checks del agente en cada PR: lint, tipos y build.
+# Sin tests todavía: Vitest llega con el retriever (Fase 1) y las evals en Fase 3.
+name: agent-ci
+
+on:
+  pull_request:
+    paths:
+      - "agent/**"
+      - ".github/workflows/agent-ci.yml"
+  push:
+    branches: [master]
+    paths:
+      - "agent/**"
+      - ".github/workflows/agent-ci.yml"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: agent/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: agent/.nvmrc
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm build
