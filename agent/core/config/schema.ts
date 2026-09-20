@@ -19,6 +19,12 @@ export const agentConfigSchema = z.object({
     voiceName: z.string().min(1),
     greeting: z.string().min(1),
   }),
+  text: z.object({
+    /** modelo para la ruta de texto: corpus, /debug y evals */
+    model: z.string().min(1),
+    /** si el principal responde 429/503 (cuota o saturación), se reintenta con este */
+    fallbackModel: z.string().min(1).optional(),
+  }),
   tools: z.array(z.string().min(1)).default([]),
   limits: z.object({
     sessionSeconds: z.number().int().positive(),
