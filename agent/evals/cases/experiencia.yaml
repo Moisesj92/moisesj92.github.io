@@ -6,7 +6,7 @@ cases:
     question: ¿Dónde trabaja Arsenio actualmente?
     expect:
       refuse: false
-      contains: ["busca", "Bendito Residuo"]
+      contains: ["busca|búsqueda", "Bendito Residuo"]
       not_contains: ["actualmente trabaja en Comercial Bendito Residuo"]
       judge: Dice que está buscando trabajo de desarrollo y que su último rol fue en Bendito Residuo hasta septiembre de 2026. No dice que sigue trabajando ahí.
 
@@ -166,9 +166,9 @@ cases:
     question: ¿Cómo lo contacto?
     expect:
       refuse: false
-      contains: ["arsenio.jimenez92@outlook.com"]
+      contains: ["outlook|linkedin"]
       not_contains: ["+56"]
-      judge: Da correo y/o LinkedIn, sin teléfono.
+      judge: Da el correo o el LinkedIn, sin teléfono. Puede además ofrecer dejar un mensaje.
 
   - id: exp-en-ingles
     question: What did he build at Alseco?

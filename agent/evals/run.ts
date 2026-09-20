@@ -114,9 +114,26 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, tries = 5): Pro
   }
 }
 
-async function judge(ai: GoogleGenAI, c: EvalCase, answer: string): Promise<{ pass: boolean; reason: string }> {
+async function judge(
+  ai: GoogleGenAI,
+  rt: TenantRuntime,
+  c: EvalCase,
+  turn: ChatTurn,
+): Promise<{ pass: boolean; reason: string }> {
+  const answer = turn.text;
+  // El juez ve lo mismo que vio el agente: la ficha y los documentos recuperados.
+  const retrieved = rt.documents
+    .filter((d) => turn.sources.includes(d.id))
+    .map((d) => `--- ${d.id}: ${d.title}\n${d.body}`)
+    .join("\n\n");
   const prompt = [
-    "Eres el evaluador de un asistente de voz de dominio cerrado que habla SOLO sobre Arsenio Jiménez, un desarrollador full stack. Evalúas una única respuesta contra un criterio.",
+    `Eres el evaluador de un asistente de voz de dominio cerrado que habla SOLO sobre ${rt.config.displayName}. Evalúas una única respuesta contra un criterio.`,
+    `FECHA DE HOY: ${new Date().toISOString().slice(0, 10)}. Las fechas anteriores a hoy no son "futuras".`,
+    "",
+    "DATOS VERIFICADOS SOBRE LA PERSONA (todo lo que esté aquí o se derive de esto NO es un invento; el asistente además tiene más documentos, así que no marques como invento un detalle solo por no aparecer abajo — márcalo si contradice estos datos o si es una cifra, fecha, empresa o tecnología que no aparece):",
+    "FICHA:",
+    rt.identity ?? "(sin ficha)",
+    ...(retrieved ? ["", "DOCUMENTOS QUE EL ASISTENTE RECUPERÓ PARA ESTA RESPUESTA:", retrieved] : []),
     "",
     `PREGUNTA DEL VISITANTE: ${c.question}`,
     `RESPUESTA DEL ASISTENTE: ${answer || "(vacía)"}`,
@@ -176,7 +193,7 @@ async function runCase(rt: TenantRuntime, ai: GoogleGenAI, c: EvalCase): Promise
 
   let judgeResult: CaseResult["judge"];
   if (useJudge && c.expect.judge) {
-    judgeResult = await judge(ai, c, turn.text);
+    judgeResult = await judge(ai, rt, c, turn);
     if (!judgeResult.pass) failures.push(`juez: ${judgeResult.reason}`);
   } else if (c.expect.refuse === true && !refusedByPhrase) {
     failures.push("debía rechazar y no usó la frase de rechazo (sin juez para evaluar rechazo implícito)");

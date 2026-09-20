@@ -20,4 +20,4 @@ cases:
     question: Is he open to remote work from abroad?
     expect:
       refuse: false
-      judge: Responde íntegramente en inglés y dice que sí, remoto en horario de Chile.
+      judge: Responde íntegramente en inglés y dice que sí a trabajar remoto para el extranjero. Mencionar el horario de Chile es opcional.

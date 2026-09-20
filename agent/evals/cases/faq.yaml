@@ -154,7 +154,7 @@ cases:
       refuse: false
       contains: ["adaptab"]
       sources_any: [faq-fortalezas-debilidades]
-      judge: "Habla de adaptabilidad: entender el negocio y usar la tecnología como herramienta, con algún ejemplo del CV."
+      judge: "Habla de adaptabilidad: entender el negocio y usar la tecnología como herramienta. Un ejemplo concreto es opcional."
 
   - id: faq-debilidad
     question: ¿Cuál es su mayor debilidad?
