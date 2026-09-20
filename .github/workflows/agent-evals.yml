@@ -1,16 +1,20 @@
 # Suite de evals del agente: ~76 casos contra la ruta de texto con Gemini
-# como juez. Corre solo cuando cambia lo que afecta a las respuestas
-# (prompt, corpus, motor, casos), porque cada run son ~150 llamadas al
-# free tier y ~10 minutos. Umbral: rechazos 100 %, resto ≥ 90 %.
+# como juez (~230 llamadas, ~10 minutos). Umbral: rechazos 100 %, resto ≥ 90 %.
+#
+# SOLO MANUAL mientras la key sea del free tier: cada corrida gasta casi la
+# mitad de la cuota diaria de los modelos lite (500/día por modelo), que es
+# la MISMA que usa la conversación por texto en producción. Para volver a
+# correrla en cada PR sin afectar a producción, la key de CI debe ser de un
+# proyecto de Google distinto (cuota propia) o de pago; entonces restaurar:
+#
+#   pull_request:
+#     paths: ["agent/core/**", "agent/tenants/**", "agent/evals/**"]
+#
+# Mientras tanto: pnpm evals en local antes de mergear cambios de prompt,
+# corpus o motor, y commitear evals/reports/latest.md.
 name: agent-evals
 
 on:
-  pull_request:
-    paths:
-      - "agent/core/**"
-      - "agent/tenants/**"
-      - "agent/evals/**"
-      - ".github/workflows/agent-evals.yml"
   workflow_dispatch:
 
 concurrency:
