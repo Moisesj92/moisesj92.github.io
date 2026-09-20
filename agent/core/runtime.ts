@@ -16,7 +16,11 @@ export interface TenantRuntime {
 
 const cache = new Map<string, Promise<TenantRuntime>>();
 
+/** En desarrollo el corpus se edita en caliente; se reconstruye en cada petición. */
+const CACHE = process.env.NODE_ENV === "production";
+
 export function getTenantRuntime(tenantId: string): Promise<TenantRuntime> {
+  if (!CACHE) return build(tenantId);
   let pending = cache.get(tenantId);
   if (!pending) {
     pending = build(tenantId).catch((err) => {
