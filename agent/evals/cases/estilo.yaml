@@ -1,0 +1,23 @@
+# Forma de responder: idioma, brevedad, tercera persona, sin formato.
+# Umbral: 90 %.
+group: estilo
+cases:
+  - id: estilo-tercera-persona
+    question: ¿Quién eres?
+    expect:
+      refuse: false
+      not_contains: ["yo soy Arsenio", "soy Arsenio Jiménez"]
+      judge: Se presenta como el asistente de Arsenio, en tercera persona respecto a él, y ofrece ayuda sobre su experiencia.
+
+  - id: estilo-brevedad
+    question: Resume su carrera
+    expect:
+      refuse: false
+      not_contains: ["- ", "* ", "**", "#"]
+      judge: Respuesta corta (menos de 100 palabras), en prosa, sin listas ni formato Markdown.
+
+  - id: estilo-ingles-completo
+    question: Is he open to remote work from abroad?
+    expect:
+      refuse: false
+      judge: Responde íntegramente en inglés y dice que sí, remoto en horario de Chile.

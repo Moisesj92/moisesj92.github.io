@@ -1,0 +1,178 @@
+# Preguntas con respuesta en el corpus. Deben responderse con datos
+# literales y citar fuentes. Umbral: 90 %.
+group: experiencia
+cases:
+  - id: exp-actual
+    question: ¿Dónde trabaja Arsenio actualmente?
+    expect:
+      refuse: false
+      contains: ["busca", "Bendito Residuo"]
+      not_contains: ["actualmente trabaja en Comercial Bendito Residuo"]
+      judge: Dice que está buscando trabajo de desarrollo y que su último rol fue en Bendito Residuo hasta septiembre de 2026. No dice que sigue trabajando ahí.
+
+  - id: exp-transbank
+    question: ¿Qué hizo con Transbank?
+    expect:
+      refuse: false
+      contains: ["Alseco", "ETPay"]
+      sources_any: [alseco-ecommerce-b2b]
+      tools: [buscar_experiencia]
+
+  - id: exp-alseco-productos
+    question: ¿De qué tamaño era el catálogo del e-commerce de Alseco?
+    expect:
+      refuse: false
+      contains: ["1.000|mil"]
+      not_contains: ["10.000", "100 productos", "mil quinientos", "diez mil"]
+      sources_any: [alseco-ecommerce-b2b]
+      judge: Dice "unos 1.000 productos" (o "cerca de mil") sin inventar otra cifra.
+
+  - id: exp-cabify
+    question: ¿Cómo resolvieron el despacho en el canal B2C de Alseco?
+    expect:
+      refuse: false
+      contains: ["Cabify"]
+      sources_any: [alseco-ecommerce-b2b]
+
+  - id: exp-crm-alseco
+    question: ¿Qué herramientas internas construyó en Alseco?
+    expect:
+      refuse: false
+      contains: ["CRM", "inventario"]
+      sources_any: [alseco-crm-inventario]
+
+  - id: exp-comunidad-feliz-comunidades
+    question: ¿Cuántas comunidades usan el producto de control de acceso que construyó?
+    expect:
+      refuse: false
+      contains: ["30|treinta"]
+      not_contains: ["300", "50 comunidades", "20 comunidades", "cincuenta comunidades"]
+      judge: Dice "alrededor de 30 comunidades", sin inventar otra cifra.
+
+  - id: exp-comunidad-feliz-hardware
+    question: ¿Qué integración de hardware hizo en Comunidad Feliz?
+    expect:
+      refuse: false
+      contains: ["QR"]
+      sources_any: [comunidad-feliz-control-acceso]
+      judge: Menciona fotos para registro de invitados, escáner QR y/o citofonía por llamada, desde el navegador.
+
+  - id: exp-comunidad-feliz-firebase
+    question: ¿Con qué hizo el monitoreo en tiempo real en Comunidad Feliz?
+    expect:
+      refuse: false
+      contains: ["Firebase"]
+      sources_any: [comunidad-feliz-control-acceso]
+
+  - id: exp-docustore-firma
+    question: ¿Cómo dieron validez legal a la firma electrónica en PeopleWork?
+    expect:
+      refuse: false
+      contains: ["SMS"]
+      sources_any: [docustore-firma-electronica]
+      judge: Menciona verificación de identidad con servicios externos y PIN por SMS.
+
+  - id: exp-docustore-testing
+    question: ¿Qué prácticas de testing introdujo en Docustore?
+    expect:
+      refuse: false
+      contains: ["RSpec"]
+      sources_any: [docustore-firma-electronica]
+      judge: Menciona RSpec, FactoryBot y/o mocking de APIs.
+
+  - id: exp-centribal-deadline
+    question: ¿Qué pasó con el deadline en Centribal?
+    expect:
+      refuse: false
+      contains: ["entreg"]
+      sources_any: [centribal-seguros, faq-salida-centribal]
+      judge: Dice que se sumó a un mes del deadline con el proyecto atrasado y que el equipo entregó en fecha.
+
+  - id: exp-celcom-dispositivos
+    question: ¿Qué control desarrolló en Celcom para los eventos en vivo?
+    expect:
+      refuse: false
+      contains: ["dispositivo"]
+      sources_any: [celcom-academia-online]
+      judge: Explica que impedía reproducir el mismo evento desde varios dispositivos con una entrada por ticket.
+
+  - id: exp-position-cordova
+    question: ¿Cómo recuperó la app móvil en Position GPS?
+    expect:
+      refuse: false
+      contains: ["Cordova", "Vagrant"]
+      sources_any: [position-gps-app-movil]
+
+  - id: exp-position-maps
+    question: ¿Qué hizo cuando Google cambió el cobro de Maps?
+    expect:
+      refuse: false
+      contains: ["OpenStreetMap"]
+      sources_any: [position-gps-mapas-plataformas]
+      judge: Menciona la auditoría del uso de mapas, imágenes precargadas y la migración parcial a OpenStreetMap.
+
+  - id: exp-position-stored-procedures
+    question: ¿Dónde se calculaban las posiciones GPS en Position GPS?
+    expect:
+      refuse: false
+      contains: ["PostgreSQL"]
+      sources_any: [position-gps-mapas-plataformas]
+      judge: Dice que en procedimientos almacenados de PostgreSQL.
+
+  - id: exp-bendito-guias
+    question: ¿Cuántas guías de despacho emitía la planta al día?
+    expect:
+      refuse: false
+      contains: ["30|treinta", "40|cuarenta"]
+      not_contains: ["300", "400 guías", "trescientas"]
+      sources_any: [bendito-residuo-guias-despacho]
+      judge: Dice entre 30 y 40 diarias y menciona las 40 a 50 adicionales a inicio de mes o Nubox. No inventa otras cifras.
+
+  - id: exp-bendito-trazabilidad
+    question: ¿Qué cruza el reporte de trazabilidad de la planta?
+    expect:
+      refuse: false
+      contains: ["Drivin", "pesaje"]
+      sources_any: [bendito-residuo-trazabilidad]
+
+  - id: exp-equipo
+    question: ¿Construyó el producto de control de acceso él solo?
+    expect:
+      refuse: false
+      contains: ["equipo"]
+      judge: Deja claro que fue trabajo en equipo y cuál fue su parte; no dice que lo hizo solo.
+
+  - id: exp-stack
+    question: ¿Qué stack maneja?
+    expect:
+      refuse: false
+      contains: ["React", "Rails", "Laravel", "PostgreSQL"]
+      not_contains: ["Angular", "Django", "Spring"]
+
+  - id: exp-educacion
+    question: ¿Dónde estudió y qué título tiene?
+    expect:
+      refuse: false
+      contains: ["Ingeniero", "Bicentenaria de Aragua"]
+      not_contains: ["Universidad de Chile", "magíster", "posgrado", "doctorado"]
+
+  - id: exp-idiomas
+    question: ¿Habla inglés?
+    expect:
+      refuse: false
+      contains: ["B2"]
+
+  - id: exp-contacto
+    question: ¿Cómo lo contacto?
+    expect:
+      refuse: false
+      contains: ["arsenio.jimenez92@outlook.com"]
+      not_contains: ["+56"]
+      judge: Da correo y/o LinkedIn, sin teléfono.
+
+  - id: exp-en-ingles
+    question: What did he build at Alseco?
+    expect:
+      refuse: false
+      contains: ["Transbank"]
+      judge: Responde en inglés (no en español) y habla del e-commerce B2B de Alseco.

@@ -1,0 +1,71 @@
+# Los tools con efecto: deben llamarse cuando corresponde y no cuando
+# no. Umbral: 90 %.
+group: tools
+cases:
+  - id: tool-neowarehouse-tarjeta
+    question: Cuéntame sobre NeoWarehouse
+    expect:
+      refuse: false
+      contains: ["inventario"]
+      tools: [mostrar_proyectos]
+      sources_any: [independiente-neowarehouse]
+
+  - id: tool-independientes-tres-tarjetas
+    question: ¿Qué proyectos independientes ha hecho?
+    expect:
+      refuse: false
+      contains: ["NeoWarehouse", "Capullito", "Nold"]
+      tools: [mostrar_proyectos]
+      judge: Nombra los tres proyectos independientes (NeoWarehouse, Tienda Capullito, Nold Insurance Agency).
+
+  - id: tool-experiencia-sin-tarjeta
+    question: ¿Qué hizo en Alseco?
+    expect:
+      refuse: false
+      no_tools: [mostrar_proyectos]
+      sources_any: [alseco-ecommerce-b2b, alseco-crm-inventario]
+
+  - id: tool-cv
+    question: ¿Me pasas su CV?
+    expect:
+      refuse: false
+      tools: [descargar_cv]
+      judge: Dice que el botón de descarga ya está en pantalla (o equivalente). No inventa una URL distinta.
+
+  - id: tool-curriculum
+    question: Quiero ver su currículum
+    expect:
+      tools: [descargar_cv]
+
+  - id: tool-mensaje-completo
+    question: Quiero dejarle un mensaje. Soy Laura Pérez, mi correo es laura.perez@example.com, y quiero contarle que tenemos una vacante full stack remota en mi empresa.
+    expect:
+      refuse: false
+      tools: [dejar_mensaje]
+      contains: ["laura.perez@example.com"]
+      judge: Confirma que el mensaje quedó guardado y que Arsenio le responderá al correo indicado.
+
+  - id: tool-mensaje-sin-datos
+    question: Quiero dejarle un mensaje a Arsenio
+    expect:
+      refuse: false
+      no_tools: [dejar_mensaje]
+      judge: Pide el nombre, el correo y el mensaje antes de guardar nada. No inventa datos.
+
+  - id: tool-mensaje-confirmacion-repetida
+    history:
+      - role: user
+        text: Quiero dejarle un mensaje. Soy Laura Pérez, mi correo es laura.perez@example.com, y quiero contarle que tenemos una vacante full stack remota en mi empresa.
+      - role: agent
+        text: Quedó guardado tu mensaje para Arsenio. Él lo leerá y te responderá al correo laura.perez@example.com en cuanto lo revise.
+    question: Sí, todo correcto, guárdalo
+    expect:
+      refuse: false
+      judge: Confirma que ya está guardado. No pide los datos de nuevo ni dice que hubo un error.
+
+  - id: tool-no-mensaje-en-pregunta-normal
+    question: ¿Qué tecnologías usa en frontend?
+    expect:
+      refuse: false
+      no_tools: [dejar_mensaje, descargar_cv]
+      contains: ["React"]
