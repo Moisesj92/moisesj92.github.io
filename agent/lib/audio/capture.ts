@@ -17,6 +17,15 @@ export class MicDeniedError extends Error {
   }
 }
 
+export class InsecureContextError extends Error {
+  constructor() {
+    super(
+      "El micrófono solo está disponible en HTTPS (o en localhost). Abre la página por una URL https://.",
+    );
+    this.name = "InsecureContextError";
+  }
+}
+
 /**
  * Captura del micrófono como PCM16 mono a 16 kHz.
  *
@@ -32,6 +41,11 @@ export class MicCapture {
   ) {}
 
   static async start(onChunk: (chunk: CaptureChunk) => void): Promise<MicCapture> {
+    // En HTTP plano (p. ej. la IP del Mac desde un móvil) navigator.mediaDevices
+    // no existe; mejor decirlo que fallar con un TypeError críptico.
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      throw new InsecureContextError();
+    }
     const ctx = createAudioContext(CAPTURE_RATE);
     let stream: MediaStream;
     try {
