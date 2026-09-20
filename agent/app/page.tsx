@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dismissBtn, ProjectCard } from "./_components/project-card";
 import { Visualizer } from "./_components/visualizer";
 import { useTextSession } from "./_lib/use-text-session";
@@ -123,6 +123,24 @@ function VoicePanel({
   onSwitchToText: () => void;
 }) {
   const { state, error, failure, level, agentLevel, expiresAt, start, stop, prewarm } = voice;
+  const startBtn = useRef<HTMLButtonElement>(null);
+
+  // En móvil no hay hover: cuando el botón entra en pantalla ya hay intención suficiente.
+  useEffect(() => {
+    const el = startBtn.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          prewarm();
+          io.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [prewarm]);
   const busy = state === "requesting-mic" || state === "connecting";
   const active = state === "listening" || state === "speaking";
   const vizMode = state === "speaking" ? "speaking" : state === "listening" ? "listening" : "idle";
@@ -136,6 +154,7 @@ function VoicePanel({
           </button>
         ) : (
           <button
+            ref={startBtn}
             onClick={start}
             onMouseEnter={prewarm}
             onFocus={prewarm}

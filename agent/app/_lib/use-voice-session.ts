@@ -37,6 +37,8 @@ export type FailureKind = "mic" | "insecure" | "quota" | "offline" | "other";
 
 /** Con menos de esto por delante, un token precalentado no se usa. */
 const PREWARM_MIN_LEFT_MS = 10_000;
+/** Tokens precalentados por carga de página: un visitante que solo lee no genera tokens en bucle. */
+const PREWARM_MAX = 3;
 
 const MAX_LOG = 60;
 
@@ -61,8 +63,9 @@ export function useVoiceSession(tenant?: string) {
   const player = useRef<PcmPlayer | null>(null);
   const provider = useRef<VoiceProvider | null>(null);
   const grant = useRef<SessionGrant | null>(null);
-  /** token pedido en hover, listo para usar si aún sirve */
+  /** token pedido por adelantado, listo para usar si aún sirve */
   const prewarmed = useRef<Promise<SessionGrant> | null>(null);
+  const prewarmCount = useRef(0);
   const playing = useRef(false);
   const clickedAt = useRef(0);
   const firstAudioLogged = useRef(false);
@@ -176,16 +179,49 @@ export function useVoiceSession(tenant?: string) {
   }, [tenant]);
 
   /**
-   * Precalentar al pasar el ratón por el botón, no al hacer click: el token
-   * tarda ~1 s en emitirse y eso se lo ahorra el primer audio.
+   * Precalentar antes del click: el token tarda ~1 s en emitirse y eso se lo
+   * ahorra el primer audio. En escritorio la señal es el hover; en móvil no
+   * hay hover, así que también vale la primera interacción con la página o
+   * que el botón entre en pantalla (ver usePrewarmSignals). Si el token
+   * anterior ya venció sin usarse, se pide otro, hasta PREWARM_MAX.
    */
   const prewarm = useCallback(() => {
-    if (state !== "idle" || prewarmed.current) return;
-    prewarmed.current = fetchGrant().catch((err) => {
-      prewarmed.current = null;
-      throw err;
+    if (state !== "idle") return;
+    const request = () => {
+      if (prewarmCount.current >= PREWARM_MAX) return;
+      prewarmCount.current += 1;
+      prewarmed.current = fetchGrant().catch((err) => {
+        prewarmed.current = null;
+        throw err;
+      });
+    };
+    if (!prewarmed.current) {
+      request();
+      return;
+    }
+    // ¿sigue sirviendo el que ya tenemos? Si venció sin usarse, se pide otro.
+    void prewarmed.current.then((g) => {
+      if (Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) {
+        prewarmed.current = null;
+        request();
+      }
     });
   }, [fetchGrant, state]);
+
+  // Señales de intención que no dependen del hover: primera interacción con
+  // la página (scroll o toque en cualquier parte). Se registran una vez.
+  useEffect(() => {
+    const onIntent = () => prewarm();
+    const opts = { once: true, passive: true } as const;
+    window.addEventListener("pointerdown", onIntent, opts);
+    window.addEventListener("scroll", onIntent, opts);
+    window.addEventListener("keydown", onIntent, opts);
+    return () => {
+      window.removeEventListener("pointerdown", onIntent);
+      window.removeEventListener("scroll", onIntent);
+      window.removeEventListener("keydown", onIntent);
+    };
+  }, [prewarm]);
 
   const runTool = useCallback(
     async (call: { id: string; name: string; args: unknown }) => {
