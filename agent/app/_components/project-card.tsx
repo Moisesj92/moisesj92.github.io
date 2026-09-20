@@ -1,6 +1,6 @@
 import type { ProjectCard as Card } from "@/core/types";
 
-/** Tarjeta que aparece mientras el agente habla del proyecto (tool mostrar_proyecto). */
+/** Tarjeta que aparece mientras el agente habla del proyecto (tool mostrar_proyectos). */
 export function ProjectCard({ card, onDismiss }: { card: Card; onDismiss?: () => void }) {
   const screenshot = card.url
     ? `https://api.microlink.io/?url=${encodeURIComponent(card.url)}&screenshot=true&meta=false&embed=screenshot.url`

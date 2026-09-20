@@ -15,7 +15,7 @@ export interface Document {
   tags: string[];
   technologies: string[];
   type: "situation" | "project" | "hard-fact" | "faq";
-  /** URL pública del proyecto, si la tiene (alimenta la tarjeta de `mostrar_proyecto`) */
+  /** URL pública del proyecto, si la tiene (alimenta la tarjeta de `mostrar_proyectos`) */
   url?: string;
   body: string;
 }
@@ -51,7 +51,7 @@ export interface ProjectCard {
 
 /** Efecto en la UI que acompaña al resultado de un tool. */
 export type ToolUiEffect =
-  | { kind: "project-card"; card: ProjectCard }
+  | { kind: "project-cards"; cards: ProjectCard[] }
   | { kind: "download"; url: string; label: string };
 
 export interface ToolResult {

@@ -1,5 +1,5 @@
 import type { TenantRuntime } from "../runtime";
-import { showableProjects } from "../tools/show-project";
+import { showableProjects } from "../tools/show-projects";
 
 /**
  * System prompt de un tenant. Orden pensado para caché de prefijo: primero
@@ -15,7 +15,7 @@ export function buildSystemPrompt(runtime: TenantRuntime, mode: PromptMode = "vo
   const { config, identity, documents, registry } = runtime;
   const languages = config.languages.join(", ");
   const name = config.displayName;
-  const projects = registry.has("mostrar_proyecto")
+  const projects = registry.has("mostrar_proyectos")
     ? showableProjects(documents).map((d) => `- ${d.id} — ${d.title}`)
     : [];
   return [
@@ -23,7 +23,7 @@ export function buildSystemPrompt(runtime: TenantRuntime, mode: PromptMode = "vo
     "",
     ...(identity ? ["FICHA (datos verificados, puedes usarlos sin buscar):", identity, ""] : []),
     ...(projects.length
-      ? ["PROYECTOS QUE PUEDES MOSTRAR EN PANTALLA con `mostrar_proyecto(id)`:", ...projects, ""]
+      ? ["PROYECTOS CON TARJETA EN PANTALLA (`mostrar_proyectos(ids)`):", ...projects, ""]
       : []),
     "REGLAS (no negociables):",
     `1. Solo respondes sobre ${name}: su experiencia, proyectos, decisiones técnicas y forma de trabajar. Nada más.`,
@@ -50,9 +50,9 @@ export function buildSystemPrompt(runtime: TenantRuntime, mode: PromptMode = "vo
 /** Instrucciones de los tools con efecto, solo para los que el tenant habilita. */
 function uiTools({ config, registry }: TenantRuntime): string[] {
   const lines: string[] = [];
-  if (registry.has("mostrar_proyecto")) {
+  if (registry.has("mostrar_proyectos")) {
     lines.push(
-      "- `mostrar_proyecto(id)`: cuando vayas a hablar de un proyecto o empresa de la lista, llámala ANTES de empezar a hablar, junto con `buscar_experiencia`, para que la tarjeta aparezca mientras lo cuentas. Máximo una tarjeta por turno: la del proyecto principal. Si el visitante pregunta por varios, nómbralos y ofrece mostrar uno. Nunca la llames a mitad de una frase ni simules su resultado.",
+      "- `mostrar_proyectos(ids)`: cuando vayas a hablar de uno o más proyectos de la lista, llámala UNA sola vez ANTES de empezar a hablar, con los ids de todos los que vas a mencionar (puede ir junto con `buscar_experiencia`). Las experiencias laborales no tienen tarjeta; no la llames para ellas. Nunca la llames a mitad de una frase ni simules su resultado.",
     );
   }
   if (registry.has("descargar_cv")) {
