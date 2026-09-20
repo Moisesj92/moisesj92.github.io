@@ -10,7 +10,7 @@ technologies: [Laravel, Vue.js]
 ---
 Entre marzo de 2020 y marzo de 2021 Arsenio fue Desarrollador Full Stack en Celcom SMS.
 
-Mantuvo y evolucionó una plataforma de academia online con cursos dictados por figuras públicas, con backend en Laravel y frontend en Vue.js.
+Con el equipo de Celcom mantuvo y evolucionó una plataforma de academia online con cursos dictados por figuras públicas, con backend en Laravel y frontend en Vue.js.
 
 Desarrolló el control que impide reproducir un mismo evento en vivo desde varios dispositivos cuando la entrada se vendió por ticket: una entrada, un dispositivo a la vez.
 

@@ -10,8 +10,8 @@ technologies: [Ruby on Rails, RSpec, FactoryBot]
 ---
 Entre septiembre de 2021 y junio de 2022 Arsenio fue Desarrollador Full Stack en Docustore, donde el equipo construía y mantenía PeopleWork, un producto de recursos humanos.
 
-Lideró de punta a punta la firma electrónica de liquidaciones de sueldo, una funcionalidad regulada que necesitaba validez legal. Integró servicios externos de verificación de identidad y autenticación por PIN vía SMS.
+Lideró de punta a punta, con el equipo de PeopleWork, la firma electrónica de liquidaciones de sueldo, una funcionalidad regulada que necesitaba validez legal. Integró servicios externos de verificación de identidad y autenticación por PIN vía SMS.
 
-En calidad, introdujo mocking de APIs, flujos con FactoryBot y pruebas de endpoints externos con RSpec. Eso permitió al equipo entregar una funcionalidad regulada sin sacrificar la confianza en cada despliegue.
+En calidad, introdujo en el equipo mocking de APIs, flujos con FactoryBot y pruebas de endpoints externos con RSpec. Eso permitió al equipo entregar una funcionalidad regulada sin sacrificar la confianza en cada despliegue.
 
 Es el ejemplo más claro en su carrera de una funcionalidad con exigencia legal, donde el testing no era opcional.
