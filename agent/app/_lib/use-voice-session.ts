@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ProjectCard, ToolResult, ToolUiEffect } from "@/core/types";
 import { MicCapture, MicDeniedError } from "@/lib/audio/capture";
 import { PcmPlayer } from "@/lib/audio/playback";
 import {
@@ -21,6 +22,13 @@ export type SessionState =
 export interface TranscriptLine {
   role: "user" | "agent";
   text: string;
+  /** ids de los documentos que respaldaron este turno (solo agente) */
+  sources?: string[];
+}
+
+export interface DownloadOffer {
+  url: string;
+  label: string;
 }
 
 export interface LogEntry {
@@ -29,6 +37,12 @@ export interface LogEntry {
 }
 
 const MAX_LOG = 60;
+/** Una tarjeta acompaña lo que se está diciendo; pasado esto, estorba. */
+const CARD_TTL_MS = 30_000;
+
+export interface ShownCard extends ProjectCard {
+  shownAt: number;
+}
 
 /**
  * Orquesta una sesión de voz: micrófono → proveedor → parlantes, y el
@@ -42,27 +56,79 @@ export function useVoiceSession(tenant?: string) {
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [cards, setCards] = useState<ShownCard[]>([]);
+  const [download, setDownload] = useState<DownloadOffer | null>(null);
 
   const mic = useRef<MicCapture | null>(null);
   const player = useRef<PcmPlayer | null>(null);
   const provider = useRef<VoiceProvider | null>(null);
   const grant = useRef<SessionGrant | null>(null);
   const playing = useRef(false);
+  /** lo que va pasando en el turno actual, para atribución y para el log */
+  const turn = useRef<{ user: string; agent: string; sources: Set<string>; tools: { name: string; ok: boolean; ms: number }[]; startedAt: number }>({
+    user: "",
+    agent: "",
+    sources: new Set(),
+    tools: [],
+    startedAt: 0,
+  });
 
   const pushLog = useCallback((msg: string) => {
     setLog((l) => [...l.slice(-(MAX_LOG - 1)), { t: Date.now(), msg }]);
   }, []);
 
   const appendTranscript = useCallback((role: "user" | "agent", text: string) => {
+    if (role === "user") turn.current.user += text;
+    else turn.current.agent += text;
     setTranscript((lines) => {
       const last = lines[lines.length - 1];
       // Las transcripciones llegan en fragmentos; se acumulan por turno.
       if (last && last.role === role) {
-        return [...lines.slice(0, -1), { role, text: last.text + text }];
+        return [...lines.slice(0, -1), { ...last, text: last.text + text }];
       }
       return [...lines, { role, text }];
     });
   }, []);
+
+  const applyUi = useCallback((ui: ToolUiEffect | undefined) => {
+    if (!ui) return;
+    if (ui.kind === "project-cards") {
+      const now = Date.now();
+      const ids = new Set(ui.cards.map((c) => c.id));
+      setCards((cs) => [...ui.cards.map((c) => ({ ...c, shownAt: now })), ...cs.filter((c) => !ids.has(c.id))].slice(0, 3));
+    } else if (ui.kind === "download") {
+      setDownload({ url: ui.url, label: ui.label });
+    }
+  }, []);
+
+  /** Cierra el turno: atribución en pantalla y registro en el servidor (sin audio). */
+  const closeTurn = useCallback(() => {
+    const t = turn.current;
+    if (!t.user && !t.agent) return;
+    const sources = [...t.sources];
+    if (sources.length) {
+      setTranscript((lines) => {
+        const i = lines.length - 1;
+        if (i < 0 || lines[i].role !== "agent") return lines;
+        return [...lines.slice(0, i), { ...lines[i], sources }];
+      });
+    }
+    void fetch("/api/log", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tenant,
+        sessionId: grant.current?.sessionId,
+        user: t.user,
+        agent: t.agent,
+        tools: t.tools,
+        sources,
+        ms: t.startedAt ? Math.round(performance.now() - t.startedAt) : undefined,
+      }),
+      keepalive: true,
+    }).catch(() => {});
+    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now() };
+  }, [tenant]);
 
   const teardown = useCallback(async () => {
     // Se toman y anulan las refs antes de cerrar nada: disconnect() emite
@@ -99,12 +165,18 @@ export function useVoiceSession(tenant?: string) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ tenant, sessionId: grant.current?.sessionId, call }),
       });
-      const result: unknown = await res.json();
+      const result = (await res.json()) as ToolResult;
       const ms = Math.round(performance.now() - started);
       pushLog(`tool ${call.name} → HTTP ${res.status} en ${ms} ms: ${JSON.stringify(result).slice(0, 160)}`);
-      provider.current?.sendToolResponse(call.id, call.name, result);
+      turn.current.tools.push({ name: call.name, ok: result.ok === true, ms });
+      for (const s of result.sources ?? []) turn.current.sources.add(s);
+      applyUi(result.ui);
+      // El modelo no necesita el efecto de UI.
+      const forModel: ToolResult = { ...result };
+      delete forModel.ui;
+      provider.current?.sendToolResponse(call.id, call.name, forModel);
     },
-    [pushLog, tenant],
+    [applyUi, pushLog, tenant],
   );
 
   const onEvent = useCallback(
@@ -132,6 +204,7 @@ export function useVoiceSession(tenant?: string) {
           break;
         case "turnComplete":
           pushLog("turno completo");
+          closeTurn();
           break;
         case "error":
           if (e.recoverable) pushLog(`aviso: ${e.message}`);
@@ -144,12 +217,15 @@ export function useVoiceSession(tenant?: string) {
           break;
       }
     },
-    [appendTranscript, fail, pushLog, runTool, teardown],
+    [appendTranscript, closeTurn, fail, pushLog, runTool, teardown],
   );
 
   const start = useCallback(async () => {
     setError(null);
     setTranscript([]);
+    setCards([]);
+    setDownload(null);
+    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now() };
     setState("requesting-mic");
     try {
       // Ambos contextos se crean ahora, dentro del gesto del usuario (iOS).
@@ -192,6 +268,22 @@ export function useVoiceSession(tenant?: string) {
     }
   }, [fail, onEvent, pushLog, tenant]);
 
+  const dismissCard = useCallback((id: string) => {
+    setCards((cs) => cs.filter((c) => c.id !== id));
+  }, []);
+
+  const dismissDownload = useCallback(() => setDownload(null), []);
+
+  // Las tarjetas caducan solas: se revisa una vez por segundo mientras haya alguna.
+  useEffect(() => {
+    if (cards.length === 0) return;
+    const t = setInterval(() => {
+      const cutoff = Date.now() - CARD_TTL_MS;
+      setCards((cs) => (cs.some((c) => c.shownAt < cutoff) ? cs.filter((c) => c.shownAt >= cutoff) : cs));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cards.length]);
+
   const stop = useCallback(async () => {
     await teardown();
     setState("idle");
@@ -204,5 +296,18 @@ export function useVoiceSession(tenant?: string) {
     };
   }, [teardown]);
 
-  return { state, error, level, transcript, log, expiresAt, start, stop };
+  return {
+    state,
+    error,
+    level,
+    transcript,
+    log,
+    expiresAt,
+    cards,
+    download,
+    dismissCard,
+    dismissDownload,
+    start,
+    stop,
+  };
 }

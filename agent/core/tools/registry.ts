@@ -1,10 +1,18 @@
 import { z } from "zod";
 import type { AgentConfig } from "../config/schema";
 import type { Tool, ToolContext, ToolResult } from "../types";
+import { downloadCv } from "./download-cv";
+import { leaveMessage } from "./leave-message";
 import { searchExperience } from "./search-experience";
+import { showProjects } from "./show-projects";
 
 /** Todos los tools que el motor conoce. Cada tenant habilita un subconjunto en agent.yaml. */
-const ALL_TOOLS: Tool<never>[] = [searchExperience as Tool<never>];
+const ALL_TOOLS: Tool<never>[] = [
+  searchExperience as Tool<never>,
+  showProjects as Tool<never>,
+  downloadCv as Tool<never>,
+  leaveMessage as Tool<never>,
+];
 
 /** Forma que Gemini espera en `tools[].functionDeclarations[]`. */
 export interface FunctionDeclarationJson {

@@ -29,10 +29,17 @@ text:
 
 tools:
   - buscar_experiencia
+  - mostrar_proyectos
+  - descargar_cv
+  - dejar_mensaje
 
 limits:
   sessionSeconds: 300
   warningAtSeconds: 240
+  messagesPerIpPerDay: 3
+
+links:
+  cvPdf: https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf
 
 brand:
   primaryColor: "#49bf9d"

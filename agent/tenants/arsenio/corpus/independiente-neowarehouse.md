@@ -6,6 +6,7 @@ period: 10/2025 – 04/2026
 role: Desarrollador Full Stack (independiente)
 tags: [inventario, bodega, logística, proyecto independiente, spa]
 technologies: [React, Next.js, Node.js, PostgreSQL]
+url: https://frontend-neowarehouse.vercel.app/
 ---
 NeoWarehouse es un sistema de inventario y gestión de bodega que Arsenio desarrolló como proyecto independiente entre octubre de 2025 y abril de 2026.
 
