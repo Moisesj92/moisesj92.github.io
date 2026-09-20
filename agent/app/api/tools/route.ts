@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { loadTenant, resolveTenantId, TenantNotFoundError } from "@/core/config/load";
-import { NullRetriever } from "@/core/retrieval/null-retriever";
-import { ToolRegistry, UnknownToolError } from "@/core/tools/registry";
+import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { getTenantRuntime } from "@/core/runtime";
+import { UnknownToolError } from "@/core/tools/registry";
 
 export const runtime = "nodejs";
 
@@ -28,8 +28,7 @@ export async function POST(request: Request) {
   const { tenant, sessionId, call } = parsed.data;
 
   try {
-    const config = await loadTenant(resolveTenantId(tenant));
-    const registry = new ToolRegistry(config);
+    const { config, registry, retriever } = await getTenantRuntime(resolveTenantId(tenant));
     if (!registry.has(call.name)) {
       return NextResponse.json(
         { error: `Tool desconocido: ${call.name}` },
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
     }
     const result = await registry.run(call.name, call.args ?? {}, {
       tenant: config,
-      retriever: new NullRetriever(),
+      retriever,
       sessionId,
     });
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
