@@ -185,33 +185,51 @@ export function useVoiceSession(tenant?: string) {
    * que el botón entre en pantalla (ver usePrewarmSignals). Si el token
    * anterior ya venció sin usarse, se pide otro, hasta PREWARM_MAX.
    */
-  const prewarm = useCallback(() => {
-    if (state !== "idle") return;
-    const request = () => {
-      if (prewarmCount.current >= PREWARM_MAX) return;
-      prewarmCount.current += 1;
-      prewarmed.current = fetchGrant().catch((err) => {
-        prewarmed.current = null;
-        throw err;
-      });
-    };
-    if (!prewarmed.current) {
-      request();
-      return;
-    }
-    // ¿sigue sirviendo el que ya tenemos? Si venció sin usarse, se pide otro.
-    void prewarmed.current.then((g) => {
-      if (Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) {
-        prewarmed.current = null;
+  const prewarm = useCallback(
+    (why: string) => {
+      if (state !== "idle" && state !== "error") return;
+      const request = () => {
+        if (prewarmCount.current >= PREWARM_MAX) {
+          pushLog(`precalentado: tope de ${PREWARM_MAX} por página alcanzado (${why})`);
+          return;
+        }
+        prewarmCount.current += 1;
+        const n = prewarmCount.current;
+        const started = performance.now();
+        prewarmed.current = fetchGrant()
+          .then((g) => {
+            pushLog(`precalentado: token ${n}/${PREWARM_MAX} listo en ${Math.round(performance.now() - started)} ms (${why}), sirve hasta ${new Date(g.connectBy).toLocaleTimeString()}`);
+            return g;
+          })
+          .catch((err) => {
+            prewarmed.current = null;
+            pushLog(`precalentado: falló (${err instanceof Error ? err.message : String(err)})`);
+            throw err;
+          });
+      };
+      if (!prewarmed.current) {
         request();
+        return;
       }
-    });
-  }, [fetchGrant, state]);
+      // ¿sigue sirviendo el que ya tenemos? Si venció sin usarse, se pide otro.
+      void prewarmed.current.then(
+        (g) => {
+          if (Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) {
+            pushLog(`precalentado: el token anterior venció sin usarse; pidiendo otro (${why})`);
+            prewarmed.current = null;
+            request();
+          }
+        },
+        () => {},
+      );
+    },
+    [fetchGrant, pushLog, state],
+  );
 
   // Señales de intención que no dependen del hover: primera interacción con
   // la página (scroll o toque en cualquier parte). Se registran una vez.
   useEffect(() => {
-    const onIntent = () => prewarm();
+    const onIntent = (e: Event) => prewarm(`interacción: ${e.type}`);
     const opts = { once: true, passive: true } as const;
     window.addEventListener("pointerdown", onIntent, opts);
     window.addEventListener("scroll", onIntent, opts);
@@ -330,7 +348,8 @@ export function useVoiceSession(tenant?: string) {
         g = await prewarmed.current.catch(() => null);
         prewarmed.current = null;
         if (g && Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) g = null;
-        if (g) pushLog("usando token precalentado");
+        if (g) pushLog("usando token precalentado: el click no espera al servidor");
+        else pushLog("el token precalentado ya no servía; pidiendo uno nuevo");
       }
       grant.current = g ?? (await fetchGrant());
       setExpiresAt(grant.current.expiresAt);
