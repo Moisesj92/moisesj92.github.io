@@ -1,0 +1,51 @@
+# Suite de evals del agente: ~76 casos contra la ruta de texto con Gemini
+# como juez. Corre solo cuando cambia lo que afecta a las respuestas
+# (prompt, corpus, motor, casos), porque cada run son ~150 llamadas al
+# free tier y ~10 minutos. Umbral: rechazos 100 %, resto ≥ 90 %.
+name: agent-evals
+
+on:
+  pull_request:
+    paths:
+      - "agent/core/**"
+      - "agent/tenants/**"
+      - "agent/evals/**"
+      - ".github/workflows/agent-evals.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: agent-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: agent/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: agent/.nvmrc
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Evals
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEFAULT_TENANT: arsenio
+        run: pnpm evals
+      - name: Reporte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals-report
+          path: |
+            agent/evals/reports/latest.md
+            agent/evals/reports/latest.json
+          if-no-files-found: ignore
