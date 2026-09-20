@@ -95,32 +95,32 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ## Fase 2 — Tools con efecto y UI
 
-**Objetivo:** que deje de ser un chat con voz y pase a ser software. Acá se juntan la Fase 0 y la Fase 1.
+**Objetivo:** que deje de ser un chat con voz y pase a ser software. Acá se juntan la Fase 0 y la Fase 1. ✅ Cerrada 2026-09-20 (PRs #9, #10).
 
 ### Tools
 
 - [x] `buscar_experiencia(consulta)` — ya existe de la Fase 1, ahora conectado a la sesión de voz
-- [ ] `mostrar_proyecto(id)` — la página despliega la tarjeta del proyecto **mientras** el agente lo cuenta. Voz y UI sincronizadas es el efecto que la gente recuerda
-- [ ] `descargar_cv()` — dispara la descarga del PDF que ya generas desde el mismo YAML
-- [ ] `dejar_mensaje(nombre, email, texto)` — captura el contacto por voz. Este es el único tool con efecto secundario en todo el sistema, y esa restricción es deliberada
-- [ ] Validar `dejar_mensaje`: rate limit propio, sanitización, y no reenviar el texto crudo a tu bandeja
+- [x] (como `mostrar_proyectos(ids)`, solo proyectos reales) `mostrar_proyecto(id)` — la página despliega la tarjeta del proyecto **mientras** el agente lo cuenta. Voz y UI sincronizadas es el efecto que la gente recuerda
+- [x] (enlaza el PDF del repo `cv`) `descargar_cv()` — dispara la descarga del PDF que ya generas desde el mismo YAML
+- [x] `dejar_mensaje(nombre, email, texto)` — captura el contacto por voz. Este es el único tool con efecto secundario en todo el sistema, y esa restricción es deliberada
+- [x] Validar `dejar_mensaje`: rate limit propio, sanitización, y no reenviar el texto crudo a tu bandeja
 
 ### UI
 
-- [ ] Estado visual de la conversación: escuchando / procesando / hablando. Sin esto el usuario no sabe si funciona
-- [ ] Visualizador de audio reactivo al micrófono — barato de hacer y hace toda la diferencia en la percepción de "está vivo"
-- [ ] Transcripción en vivo en pantalla
-- [ ] Atribución visible: cada afirmación muestra de qué documento salió
-- [ ] **Fallback a texto**, con la misma calidad de respuesta. No es opcional: un reclutador en oficina abierta no le va a hablar a su laptop
-- [ ] Móvil real: probado en iOS y Android, no solo en el responsive del devtools
-- [ ] Estados de error con salida digna: micrófono denegado, sin conexión, cuota agotada
+- [x] Estado visual de la conversación: escuchando / procesando / hablando. Sin esto el usuario no sabe si funciona
+- [x] Visualizador de audio reactivo al micrófono — barato de hacer y hace toda la diferencia en la percepción de "está vivo"
+- [x] Transcripción en vivo en pantalla
+- [x] Atribución visible: cada afirmación muestra de qué documento salió
+- [x] **Fallback a texto**, con la misma calidad de respuesta. No es opcional: un reclutador en oficina abierta no le va a hablar a su laptop
+- [ ] Móvil real: probado en iOS ✅ y Android ⬜, no solo en el responsive del devtools
+- [x] Estados de error con salida digna: micrófono denegado, sin conexión, cuota agotada
 
 ### Latencia percibida
 
-- [ ] Precalentar la sesión al hacer hover sobre el botón, no al hacer click
-- [ ] Saludo inmediato al conectar, para que el primer audio llegue antes de que el usuario hable
-- [ ] Activar preámbulos hablados para cubrir la latencia de los tool calls
-- [ ] Instrumentar y registrar el tiempo al primer audio
+- [x] Precalentar la sesión al hacer hover sobre el botón, no al hacer click
+- [x] Saludo inmediato al conectar, para que el primer audio llegue antes de que el usuario hable
+- [x] Activar preámbulos hablados para cubrir la latencia de los tool calls
+- [x] Instrumentar y registrar el tiempo al primer audio
 
 ---
 
@@ -130,18 +130,18 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ### Evals (lo que convierte esto en ingeniería)
 
-- [ ] ~50 casos en YAML: pregunta, comportamiento esperado, documentos que deberían recuperarse
-- [ ] De esos, **15 deben terminar en rechazo**: preguntas fuera de dominio, datos que no existen, intentos de usar el agente como LLM general, preguntas capciosas sobre tecnologías que no has usado
-- [ ] Runner que corre contra la ruta de texto — barata y determinista
-- [ ] LLM como juez, con criterio explícito por caso
-- [ ] Umbral de corte: si la tasa de rechazo correcto baja, el build falla
-- [ ] GitHub Action en cada PR
-- [ ] Reporte de resultados versionado en el repo
+- [x] ~50 casos en YAML: pregunta, comportamiento esperado, documentos que deberían recuperarse
+- [x] De esos, **15 deben terminar en rechazo**: preguntas fuera de dominio, datos que no existen, intentos de usar el agente como LLM general, preguntas capciosas sobre tecnologías que no has usado
+- [x] Runner que corre contra la ruta de texto — barata y determinista
+- [x] LLM como juez, con criterio explícito por caso
+- [x] Umbral de corte: si la tasa de rechazo correcto baja, el build falla
+- [x] GitHub Action en cada PR (solo cuando cambian core/, tenants/ o evals/: ~230 llamadas por run)
+- [x] Reporte de resultados versionado en el repo
 
 ### Contención de costo y abuso
 
 - [ ] Turnstile invisible antes de emitir cualquier sesión de voz
-- [ ] Token de sesión de un solo uso, TTL de segundos
+- [x] Token de sesión de un solo uso, TTL de segundos
 - [x] Tope duro de sesión en el servidor (5 min) — vía `expireTime` del token (ADR-005); aviso al minuto 4 pendiente
 - [ ] Rate limit por IP y por día
 - [ ] Contador de presupuesto persistido, con kill-switch
@@ -150,7 +150,7 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ### Observabilidad
 
-- [ ] Registro estructurado por turno: latencia, documentos recuperados, tools llamados, tokens, costo estimado
+- [x] (a stdout; tokens y costo pendientes de persistir) Registro estructurado por turno: latencia, documentos recuperados, tools llamados, tokens, costo estimado
 - [ ] Transcripciones anonimizadas, sin audio, con correos y teléfonos redactados
 - [ ] Retención de 30 días y aviso de privacidad visible antes de activar el micrófono
 - [ ] Dashboard simple: sesiones, duración media, preguntas más frecuentes, tasa de rechazo
@@ -189,14 +189,14 @@ Que funcione no impresiona a nadie. Lo que impresiona es que puedas explicar las
 - [ ] **README** con el diagrama de arquitectura y las decisiones justificadas: por qué speech-to-speech y no pipeline, por qué BM25 y no vectores, por qué los tools corren en el servidor, por qué el único tool con efecto secundario es `dejar_mensaje`
 - [ ] **Página `/arquitectura`** en el sitio, escrita para un lector técnico que llegó desde tu CV
 - [ ] **Métricas reales medidas en producción**, no estimadas: p50 y p95 de tiempo al primer audio, costo promedio por sesión, tasa de rechazo correcto de la suite de evals
-- [ ] **Historial de commits legible**. Un reclutador técnico lo va a mirar: commits atómicos con mensajes que explican el porqué
+- [x] **Historial de commits legible**. Un reclutador técnico lo va a mirar: commits atómicos con mensajes que explican el porqué
 
 ### El agente está listo cuando
 
-- [ ] Responde bien las 50 preguntas de la suite, incluidos los 15 rechazos
-- [ ] Sobrevive a que lo interrumpan a media frase
-- [ ] Funciona en un iPhone con datos móviles
-- [ ] Un visitante sin micrófono tiene una experiencia completa por texto
+- [x] (76/76, 18 rechazos) Responde bien las 50 preguntas de la suite, incluidos los 15 rechazos
+- [x] Sobrevive a que lo interrumpan a media frase
+- [x] Funciona en un iPhone con datos móviles
+- [x] Un visitante sin micrófono tiene una experiencia completa por texto
 - [ ] Se lo mostraste a dos personas que no son tú y ninguna se quedó esperando sin saber qué hacer
 
 ### Cómo lo presentas
