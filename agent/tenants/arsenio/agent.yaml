@@ -17,6 +17,10 @@ voice:
   voiceName: Kore
   greeting: "Hola, soy el asistente de Arsenio. ¿Qué te gustaría saber sobre su experiencia?"
 
+text:
+  model: gemini-3.8-flash
+  fallbackModel: gemini-3.5-flash-lite
+
 tools:
   - buscar_experiencia
 
