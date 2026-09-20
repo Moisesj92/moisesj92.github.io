@@ -1,7 +1,6 @@
 import { GoogleGenAI, Modality, type LiveConnectConfig } from "@google/genai";
-import type { AgentConfig } from "../config/schema";
 import { buildSystemPrompt } from "../prompt/system";
-import { ToolRegistry } from "../tools/registry";
+import type { TenantRuntime } from "../runtime";
 
 /** Lo que el navegador recibe para abrir la sesión de voz. Nunca contiene la API key. */
 export interface SessionGrant {
@@ -21,11 +20,10 @@ const NEW_SESSION_WINDOW_S = 60;
  * Configuración de la sesión Live. Va bloqueada dentro del token
  * (ADR-002): el cliente no puede cambiar prompt, tools, modalidad ni voz.
  */
-export function buildLiveConfig(config: AgentConfig): LiveConnectConfig {
-  const registry = new ToolRegistry(config);
+export function buildLiveConfig({ config, identity, registry }: TenantRuntime): LiveConnectConfig {
   return {
     responseModalities: [Modality.AUDIO],
-    systemInstruction: buildSystemPrompt(config),
+    systemInstruction: buildSystemPrompt(config, identity),
     tools: [{ functionDeclarations: registry.declarations() }],
     speechConfig: {
       voiceConfig: { prebuiltVoiceConfig: { voiceName: config.voice.voiceName } },
@@ -41,9 +39,10 @@ export function buildLiveConfig(config: AgentConfig): LiveConnectConfig {
  * estado en el servidor (ADR-005).
  */
 export async function createSessionGrant(
-  config: AgentConfig,
+  runtime: TenantRuntime,
   apiKey: string,
 ): Promise<SessionGrant> {
+  const { config } = runtime;
   const now = Date.now();
   const expireTime = new Date(
     now + (config.limits.sessionSeconds + EXPIRY_MARGIN_S) * 1000,
@@ -58,7 +57,7 @@ export async function createSessionGrant(
       newSessionExpireTime: newSessionExpireTime.toISOString(),
       liveConnectConstraints: {
         model: config.voice.model,
-        config: buildLiveConfig(config),
+        config: buildLiveConfig(runtime),
       },
       // Sin lockAdditionalFields, la API bloquea TODO el config del token
       // (verificado: un cliente que manda otro systemInstruction y tools: []
