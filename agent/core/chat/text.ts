@@ -65,7 +65,7 @@ export async function runTextTurn(
   const steps: ToolStep[] = [];
   const sources = new Set<string>();
   const generationConfig = {
-    systemInstruction: buildSystemPrompt(config, identity),
+    systemInstruction: buildSystemPrompt(config, identity, "text"),
     tools: [{ functionDeclarations: registry.declarations() }],
     temperature: 0.2,
   };
