@@ -59,8 +59,9 @@ export class GeminiLiveProvider implements VoiceProvider {
   }
 
   disconnect(): void {
+    if (!this.session) return;
     this.closedByUs = true;
-    this.session?.close();
+    this.session.close();
     this.session = null;
     this.emit({ type: "closed", reason: "usuario" });
   }
