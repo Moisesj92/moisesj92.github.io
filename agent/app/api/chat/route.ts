@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ModelUnavailableError, runTextTurn } from "@/core/chat/text";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { logTurn } from "@/core/observability/turn-log";
 import { getTenantRuntime } from "@/core/runtime";
+import { hashIp, requestIp } from "@/core/session/visitor";
 
 export const runtime = "nodejs";
 
@@ -35,7 +37,20 @@ export async function POST(request: Request) {
 
   try {
     const rt = await getTenantRuntime(resolveTenantId(tenant));
-    const turn = await runTextTurn(rt, apiKey, history, message, sessionId);
+    const started = performance.now();
+    const turn = await runTextTurn(rt, apiKey, history, message, sessionId, hashIp(requestIp(request)));
+    logTurn({
+      channel: "text",
+      tenant: rt.config.id,
+      sessionId,
+      user: message,
+      agent: turn.text,
+      tools: turn.steps.map((s) => ({ name: s.name, ok: s.result.ok, ms: s.ms })),
+      sources: turn.sources,
+      model: turn.model,
+      ms: Math.round(performance.now() - started),
+      refused: turn.text.includes(rt.config.refusalPhrase),
+    });
     return NextResponse.json({ sessionId, ...turn }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     if (err instanceof TenantNotFoundError) {

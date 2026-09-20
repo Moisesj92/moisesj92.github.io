@@ -29,7 +29,15 @@ export const agentConfigSchema = z.object({
   limits: z.object({
     sessionSeconds: z.number().int().positive(),
     warningAtSeconds: z.number().int().positive(),
+    /** mensajes de `dejar_mensaje` por IP y día */
+    messagesPerIpPerDay: z.number().int().positive().default(3),
   }),
+  links: z
+    .object({
+      /** PDF del CV que descarga `descargar_cv` */
+      cvPdf: z.string().url().optional(),
+    })
+    .default({}),
   brand: z
     .object({
       primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),

@@ -1,6 +1,6 @@
 import { ApiError, GoogleGenAI, type Content, type Part } from "@google/genai";
 import { buildSystemPrompt } from "../prompt/system";
-import type { TenantRuntime } from "../runtime";
+import { toolContext, type TenantRuntime } from "../runtime";
 import type { ToolResult } from "../types";
 
 export interface ChatMessage {
@@ -50,8 +50,10 @@ export async function runTextTurn(
   history: ChatMessage[],
   message: string,
   sessionId: string,
+  ipHash: string,
 ): Promise<ChatTurn> {
-  const { config, identity, registry, retriever } = runtime;
+  const { config, registry } = runtime;
+  const ctx = toolContext(runtime, sessionId, ipHash);
   const ai = new GoogleGenAI({ apiKey });
 
   const contents: Content[] = [
@@ -65,7 +67,7 @@ export async function runTextTurn(
   const steps: ToolStep[] = [];
   const sources = new Set<string>();
   const generationConfig = {
-    systemInstruction: buildSystemPrompt(config, identity, "text"),
+    systemInstruction: buildSystemPrompt(runtime, "text"),
     tools: [{ functionDeclarations: registry.declarations() }],
     temperature: 0.2,
   };
@@ -98,7 +100,7 @@ export async function runTextTurn(
       const name = call.name ?? "";
       const started = performance.now();
       const result = registry.has(name)
-        ? await registry.run(name, call.args ?? {}, { tenant: config, retriever, sessionId })
+        ? await registry.run(name, call.args ?? {}, ctx)
         : { ok: false, error: `Tool desconocido: ${name}` };
       steps.push({ name, args: call.args ?? {}, result, ms: Math.round(performance.now() - started) });
       for (const s of result.sources ?? []) sources.add(s);

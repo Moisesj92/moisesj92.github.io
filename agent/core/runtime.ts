@@ -2,8 +2,9 @@ import type { AgentConfig } from "./config/schema";
 import { loadTenant } from "./config/load";
 import { loadCorpus, loadIdentity } from "./corpus/load";
 import { BM25Retriever } from "./retrieval/bm25";
+import { getMessageStore } from "./storage";
 import { ToolRegistry } from "./tools/registry";
-import type { Document, Retriever } from "./types";
+import type { Document, Retriever, ToolContext } from "./types";
 
 /** Todo lo que un tenant necesita en runtime, construido una vez por proceso. */
 export interface TenantRuntime {
@@ -12,6 +13,18 @@ export interface TenantRuntime {
   documents: Document[];
   retriever: Retriever;
   registry: ToolRegistry;
+}
+
+/** Contexto con el que corre un tool en una petición concreta. */
+export function toolContext(rt: TenantRuntime, sessionId: string, ipHash: string): ToolContext {
+  return {
+    tenant: rt.config,
+    retriever: rt.retriever,
+    documents: rt.documents,
+    store: getMessageStore(),
+    sessionId,
+    ipHash,
+  };
 }
 
 const cache = new Map<string, Promise<TenantRuntime>>();

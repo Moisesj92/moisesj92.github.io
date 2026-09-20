@@ -20,10 +20,11 @@ const NEW_SESSION_WINDOW_S = 60;
  * Configuración de la sesión Live. Va bloqueada dentro del token
  * (ADR-002): el cliente no puede cambiar prompt, tools, modalidad ni voz.
  */
-export function buildLiveConfig({ config, identity, registry }: TenantRuntime): LiveConnectConfig {
+export function buildLiveConfig(runtime: TenantRuntime): LiveConnectConfig {
+  const { config, registry } = runtime;
   return {
     responseModalities: [Modality.AUDIO],
-    systemInstruction: buildSystemPrompt(config, identity),
+    systemInstruction: buildSystemPrompt(runtime),
     tools: [{ functionDeclarations: registry.declarations() }],
     speechConfig: {
       voiceConfig: { prebuiltVoiceConfig: { voiceName: config.voice.voiceName } },
