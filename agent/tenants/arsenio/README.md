@@ -21,7 +21,8 @@ Contexto. Qué hizo él específicamente. Decisión técnica que tomó. Resultad
 Reglas:
 
 - **Métricas literales**, nunca redondeadas. Si el dato no existe, no se inventa: se escribe un documento `faq` que diga qué se sabe y qué no.
-- Archivos y carpetas que empiezan con `_` son borradores y **no se cargan**. `_borradores/` tiene las preguntas predecibles sin respuesta obvia; muévelas a `corpus/` cuando estén redactadas.
+- Archivos y carpetas que empiezan con `_` son borradores y **no se cargan**. Úsalo para escribir un documento nuevo sin publicarlo todavía.
+- Los `faq-*` son los "no": preguntas predecibles sin respuesta obvia en el CV (renta, reubicación, por qué terminó cada trabajo). Una respuesta redactada vale más que cualquier guardrail.
 - Nada que no quieras público. El agente lo dice en voz alta a quien pregunte.
 - 25 documentos buenos superan a 60 mediocres.
 

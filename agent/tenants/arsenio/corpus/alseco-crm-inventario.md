@@ -8,7 +8,7 @@ role: Desarrollador Full Stack
 tags: [crm, inventario, facturación, bodegas, herramientas internas]
 technologies: [Ruby on Rails, Laravel, Filament, React]
 ---
-Además del e-commerce, en Alseco Arsenio desarrolló desde cero el CRM de inventario de las bodegas de los proveedores, y su módulo de facturación.
+Además del e-commerce, en Alseco Arsenio desarrolló desde cero, dentro del equipo, el CRM de inventario de las bodegas de los proveedores y su módulo de facturación; fue quien lo llevó adelante.
 
 El CRM reemplazó gestión manual del stock en bodegas de terceros por una herramienta interna, y el módulo de facturación cerró el ciclo de la venta dentro de la misma plataforma.
 

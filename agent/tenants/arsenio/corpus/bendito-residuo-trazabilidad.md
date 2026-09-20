@@ -3,7 +3,7 @@ id: bendito-residuo-trazabilidad
 title: Reporte de trazabilidad Drivin–pesaje en Bendito Residuo
 type: situation
 company: Comercial Bendito Residuo SpA
-period: 05/2026 – presente
+period: 05/2026 – 09/2026
 role: Encargado de Trazabilidad y Valorización
 tags: [trazabilidad, análisis de datos, operaciones, residuos, logística]
 technologies: [Drivin]
@@ -14,4 +14,4 @@ El reporte cruza las rutas de Drivin (la herramienta de ruteo de los camiones) c
 
 El valor está en que la trazabilidad deja de depender de revisar planillas a mano: las excepciones aparecen solas.
 
-Este rol, desde mayo de 2026, es de gestión de operaciones con un fuerte componente de automatización y análisis de datos, no un puesto de desarrollador de software.
+Este rol, entre mayo y septiembre de 2026, fue de gestión de operaciones con un fuerte componente de automatización y análisis de datos, no un puesto de desarrollador de software.

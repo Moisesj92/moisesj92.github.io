@@ -10,6 +10,6 @@ technologies: [Ruby on Rails, Laravel, PostgreSQL, OpenStreetMap, Google Maps, J
 ---
 En Position GPS, cuando Google cambió el modelo de cobro de Maps, Arsenio auditó en un mes el uso de mapas en toda la plataforma. Reemplazó por imágenes precargadas las vistas que no requerían interacción y migró parte del resto a OpenStreetMap, reduciendo las peticiones a la API de Google.
 
-Mantuvo en producción dos plataformas, una en Ruby on Rails y otra en Laravel, con el cálculo de posiciones GPS resuelto en procedimientos almacenados de PostgreSQL. Migró a JavaScript un módulo heredado en PHP.
+Con el equipo mantuvo en producción dos plataformas, una en Ruby on Rails y otra en Laravel, con el cálculo de posiciones GPS resuelto en procedimientos almacenados de PostgreSQL. Migró a JavaScript un módulo heredado en PHP.
 
 Período: marzo de 2019 a marzo de 2020.

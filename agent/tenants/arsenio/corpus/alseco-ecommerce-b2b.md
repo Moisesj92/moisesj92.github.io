@@ -10,8 +10,8 @@ technologies: [React, Ruby on Rails, Laravel, Filament, DigitalOcean, Transbank,
 ---
 Entre julio de 2022 y junio de 2024 Arsenio fue Desarrollador Full Stack en Alseco.
 
-Construyó un e-commerce B2B sobre un catálogo de unos 1.000 productos con variantes, en el rubro de bebidas alcohólicas y no alcohólicas. La plataforma permitía comparar precios entre productos relacionados y comprar directamente a los productores. Estaba integrada con dos pasarelas de pago chilenas: Transbank y ETPay.
+Con el equipo de desarrollo de Alseco construyó un e-commerce B2B sobre un catálogo de unos 1.000 productos con variantes, en el rubro de bebidas alcohólicas y no alcohólicas. La plataforma permitía comparar precios entre productos relacionados y comprar directamente a los productores. Estaba integrada con dos pasarelas de pago chilenas: Transbank y ETPay.
 
-Sobre la misma plataforma levantó el canal B2C, con despacho automático vía Cabify.
+Sobre la misma plataforma levantaron el canal B2C, con despacho automático vía Cabify.
 
 Stack: React en el frontend; Ruby on Rails y Laravel (con Filament) en el backend; DigitalOcean como infraestructura.

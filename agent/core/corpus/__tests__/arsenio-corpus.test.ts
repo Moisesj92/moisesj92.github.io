@@ -14,9 +14,9 @@ describe("corpus de arsenio", () => {
     expect(new Set(docs.map((d) => d.id)).size).toBe(docs.length);
   });
 
-  it("no carga borradores", async () => {
+  it("incluye los \"no\" (faq)", async () => {
     const docs = await loadCorpus("arsenio");
-    expect(docs.some((d) => d.id.startsWith("faq-"))).toBe(false);
+    expect(docs.filter((d) => d.type === "faq").length).toBeGreaterThanOrEqual(8);
   });
 
   it("tiene capa 0 corta", async () => {
@@ -32,8 +32,10 @@ describe("corpus de arsenio", () => {
 
     expect((await top("pasarelas de pago"))[0]).toBe("alseco-ecommerce-b2b");
     expect((await top("firma electrónica de liquidaciones"))[0]).toBe("docustore-firma-electronica");
-    expect((await top("qué hace en la planta de residuos"))[0]).toMatch(/^bendito-residuo-/);
+    expect((await top("qué hace en la planta de residuos"))[0]).toMatch(/bendito-residuo|planta-residuos/);
     expect((await top("google maps"))[0]).toBe("position-gps-mapas-plataformas");
-    expect(await top("kubernetes")).toEqual([]);
+    expect((await top("kubernetes"))[0]).toBe("faq-tecnologias-no-usadas");
+    expect((await top("cuánto espera ganar"))[0]).toBe("faq-expectativa-renta");
+    expect((await top("por qué dejó Comunidad Feliz"))[0]).toBe("faq-por-que-dejo-cada-trabajo");
   });
 });
