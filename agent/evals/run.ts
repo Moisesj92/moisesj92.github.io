@@ -185,6 +185,14 @@ function check(c: EvalCase, turn: ChatTurn, refusalPhrase: string): string[] {
   return failures;
 }
 
+/** Cuota diaria agotada: no tiene sentido seguir; se reporta lo evaluado y se sale con 2. */
+class QuotaExhaustedError extends Error {
+  constructor(public readonly evaluated: number) {
+    super("Cuota diaria de Gemini agotada");
+    this.name = "QuotaExhaustedError";
+  }
+}
+
 async function runCase(rt: TenantRuntime, ai: GoogleGenAI, c: EvalCase): Promise<CaseResult> {
   const started = performance.now();
   const turn = await withRetry(
@@ -296,12 +304,29 @@ async function main() {
   const ai = new GoogleGenAI({ apiKey: apiKey! });
   const started = performance.now();
   let done = 0;
-  const results = await pool(cases, config.concurrency, async (c) => {
-    const r = await runCase(rt, ai, c);
-    done++;
-    console.log(`${r.pass ? "✅" : "❌"} [${done}/${cases.length}] ${r.id}${r.pass ? "" : ` — ${r.failures[0]}`}`);
-    return r;
-  });
+  const partial: CaseResult[] = [];
+  let results: CaseResult[];
+  try {
+    results = await pool(cases, config.concurrency, async (c) => {
+      let r: CaseResult;
+      try {
+        r = await runCase(rt, ai, c);
+      } catch (err) {
+        if (err instanceof ModelUnavailableError) throw new QuotaExhaustedError(partial.length);
+        throw err;
+      }
+      partial.push(r);
+      done++;
+      console.log(`${r.pass ? "✅" : "❌"} [${done}/${cases.length}] ${r.id}${r.pass ? "" : ` — ${r.failures[0]}`}`);
+      return r;
+    });
+  } catch (err) {
+    if (!(err instanceof QuotaExhaustedError)) throw err;
+    const md = report(partial, false, performance.now() - started);
+    if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, `> ⚠️ Cuota diaria agotada tras ${partial.length}/${cases.length} casos.\n\n${md}`, { flag: "a" });
+    console.error(`\n⚠️ Cuota diaria de Gemini agotada tras ${partial.length}/${cases.length} casos (free tier: 500/día por modelo lite; una suite completa son ~230 llamadas). Reintenta tras el reinicio diario (medianoche hora del Pacífico) o corre un subconjunto con --only / --group.`);
+    process.exit(2);
+  }
   const totalMs = performance.now() - started;
 
   const rechazos = results.filter((r) => r.group === "rechazo");
