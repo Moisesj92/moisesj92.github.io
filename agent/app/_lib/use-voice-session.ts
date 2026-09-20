@@ -92,9 +92,10 @@ export function useVoiceSession(tenant?: string) {
 
   const applyUi = useCallback((ui: ToolUiEffect | undefined) => {
     if (!ui) return;
-    if (ui.kind === "project-card") {
-      const shown = { ...ui.card, shownAt: Date.now() };
-      setCards((cs) => [shown, ...cs.filter((c) => c.id !== ui.card.id)].slice(0, 3));
+    if (ui.kind === "project-cards") {
+      const now = Date.now();
+      const ids = new Set(ui.cards.map((c) => c.id));
+      setCards((cs) => [...ui.cards.map((c) => ({ ...c, shownAt: now })), ...cs.filter((c) => !ids.has(c.id))].slice(0, 3));
     } else if (ui.kind === "download") {
       setDownload({ url: ui.url, label: ui.label });
     }

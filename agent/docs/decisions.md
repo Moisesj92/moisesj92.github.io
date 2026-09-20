@@ -76,7 +76,7 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 
 **Plan original:** identificadores en español (`buscar(consulta, limite)`, `Documento`, `Herramienta`).
 
-**Decisión:** interfaces, archivos, variables y **claves** de `agent.yaml` en inglés. Nombres de tools que ve el modelo (`buscar_experiencia`, `mostrar_proyecto`, `dejar_mensaje`), contenido del corpus y **valores** de configuración en español.
+**Decisión:** interfaces, archivos, variables y **claves** de `agent.yaml` en inglés. Nombres de tools que ve el modelo (`buscar_experiencia`, `mostrar_proyectos`, `dejar_mensaje`), contenido del corpus y **valores** de configuración en español.
 
 **Por qué:** el repo es público y su audiencia es un reclutador técnico; inglés en código es la convención que espera. Los nombres de tools son parte del *producto* que ven el modelo y el visitante, y el producto habla español. La frontera es nítida: lo que ve el modelo o el visitante es dominio; lo que ve el desarrollador es código.
 
