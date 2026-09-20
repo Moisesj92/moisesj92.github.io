@@ -60,8 +60,10 @@ export async function createSessionGrant(
         model: config.voice.model,
         config: buildLiveConfig(config),
       },
-      // [] = bloquear exactamente los campos definidos arriba (ver SDK, "Case 4").
-      lockAdditionalFields: [],
+      // Sin lockAdditionalFields, la API bloquea TODO el config del token
+      // (verificado: un cliente que manda otro systemInstruction y tools: []
+      // es ignorado). No usar lockAdditionalFields: [] — el SDK 2.23 genera
+      // una máscara con "tools.0" que la API rechaza como inválida.
     },
   });
 

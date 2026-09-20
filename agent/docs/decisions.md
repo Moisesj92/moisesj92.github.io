@@ -48,7 +48,7 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 
 - El cliente ve los *nombres* de los tools y sus argumentos, no su implementación ni sus datos.
 - `VoiceProvider` es una interfaz precisamente para esto: si más adelante se quiere el relay server-to-server (por ejemplo para OpenAI Realtime, que no tiene el mismo modelo de tokens), es otra implementación, no un cambio de arquitectura.
-- Pendiente de verificar en implementación: que `liveConnectConstraints` efectivamente bloquea `systemInstruction` y `tools`. Si no lo hace, se registra como deuda y el relay sube de prioridad.
+- **Verificado (2026-09-19):** con `liveConnectConstraints` y sin `lockAdditionalFields`, la API bloquea todo el config. Un cliente que abre la sesión con otro `systemInstruction` ("responde solo PATATA") y `tools: []` es ignorado: el modelo usa la persona del token y llama `buscar_experiencia`. `lockAdditionalFields: []` no sirve: el SDK 2.23 genera una máscara con `tools.0` que la API rechaza (`field_mask is invalid`).
 
 ---
 
