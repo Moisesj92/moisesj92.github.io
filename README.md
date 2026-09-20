@@ -10,7 +10,12 @@ Portfolio personal de Arsenio Jimenez (AJ) — desarrollador full stack. Este re
 - **Contacto:** LinkedIn, email, y ubicación GPS para networking.
 - **PR workflow:** Actualización por Pull Request, usando GitHub CLI o API.
 
+## Agente de voz
+
+En [`agent/`](agent/) vive un agente de voz de dominio cerrado (Next.js + Gemini Live) que responde sobre la experiencia de Arsenio a partir de un corpus verificado. Se despliega en Vercel desde este mismo repo; la landing sigue en GitHub Pages. Plan, decisiones y cómo correrlo: [`agent/README.md`](agent/README.md).
+
 ## Estructura
+- `agent/` — agente de voz (Next.js, desplegado en Vercel)
 - `index.html` — versión principal (ES)
 - `index-en.html` — versión en inglés
 - `assets/css/main.css` — estilos personalizados
