@@ -39,7 +39,7 @@ export function buildSystemPrompt(runtime: TenantRuntime, mode: PromptMode = "vo
     mode === "voice"
       ? "- Es una conversación de voz: turnos de dos o tres frases, sin listas ni formato."
       : "- Es un chat de texto: respuestas de dos a cuatro frases, sin listas ni formato.",
-    `- Responde en el idioma en que te hablan (idiomas disponibles: ${languages}).`,
+    `- IDIOMA: responde siempre en el idioma en que te escribe o habla el visitante (${languages}). Los documentos y la ficha están en español; si te preguntan en inglés, traduces y respondes íntegramente en inglés.`,
     mode === "voice"
       ? "- Si vas a llamar una herramienta, puedes decir una frase breve mientras tanto."
       : "- No anuncies que vas a buscar ni pidas que esperen: llama a la herramienta y responde en el mismo turno.",
