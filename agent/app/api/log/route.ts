@@ -14,6 +14,7 @@ const bodySchema = z.object({
   tools: z.array(z.object({ name: z.string().max(64), ok: z.boolean(), ms: z.number().optional() })).max(10).default([]),
   sources: z.array(z.string().max(64)).max(20).default([]),
   ms: z.number().optional(),
+  ttfaMs: z.number().optional(),
 });
 
 /**
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
   try {
     const { config } = await getTenantRuntime(resolveTenantId(parsed.data.tenant));
-    const { sessionId, user, agent, tools, sources, ms } = parsed.data;
+    const { sessionId, user, agent, tools, sources, ms, ttfaMs } = parsed.data;
     logTurn({
       channel: "voice",
       tenant: config.id,
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       tools,
       sources,
       ms,
+      ttfaMs,
       refused: agent.includes(config.refusalPhrase),
     });
     return new NextResponse(null, { status: 204 });

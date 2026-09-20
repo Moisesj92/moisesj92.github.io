@@ -5,7 +5,8 @@
  * sonó, y eso exige controlar el buffer. Mensajes:
  *   { type: "push", pcm: Int16Array }  encola audio
  *   { type: "flush" }                  descarta todo lo pendiente (barge-in)
- * Emite { type: "state", playing } cuando empieza o termina de sonar.
+ * Emite { type: "state", playing } cuando empieza o termina de sonar y
+ * { type: "level", value } (RMS 0..1) cada ~50 ms mientras suena.
  */
 class PlaybackProcessor extends AudioWorkletProcessor {
   constructor(options) {
@@ -16,6 +17,8 @@ class PlaybackProcessor extends AudioWorkletProcessor {
     this.queue = []; // Float32Array[] ya a la tasa del contexto
     this.head = 0; // offset dentro de queue[0]
     this.playing = false;
+    this.levelAcc = 0;
+    this.levelN = 0;
     this.port.onmessage = (e) => {
       const msg = e.data;
       if (msg.type === "push") this.enqueue(msg.pcm);
@@ -71,6 +74,15 @@ class PlaybackProcessor extends AudioWorkletProcessor {
     }
     if (written < out.length) out.fill(0, written);
     this.setPlaying(written > 0);
+    if (written > 0) {
+      for (let i = 0; i < written; i++) this.levelAcc += out[i] * out[i];
+      this.levelN += written;
+      if (this.levelN >= sampleRate / 20) {
+        this.port.postMessage({ type: "level", value: Math.sqrt(this.levelAcc / this.levelN) });
+        this.levelAcc = 0;
+        this.levelN = 0;
+      }
+    }
     return true;
   }
 }
