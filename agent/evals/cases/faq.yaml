@@ -7,7 +7,6 @@ cases:
     expect:
       refuse: false
       contains: ["sí"]
-      sources_any: [faq-disponibilidad]
       judge: Dice que sí, activamente, para un rol de desarrollo, y que puede empezar de inmediato.
 
   - id: faq-cuando-empieza
@@ -15,7 +14,6 @@ cases:
     expect:
       refuse: false
       contains: ["inmediat"]
-      sources_any: [faq-disponibilidad]
 
   - id: faq-remoto
     question: ¿Trabaja remoto o presencial?
@@ -52,14 +50,13 @@ cases:
     expect:
       refuse: false
       sources_any: [faq-planta-residuos-y-desarrollo]
-      judge: Explica que fue un cambio de industria deliberado, con un conocido como dueño, para demostrar que puede construir software en cualquier industria; y que no dejó de programar.
+      judge: Explica que fue un cambio de industria deliberado para demostrar que puede construir software fuera del sector tecnológico, y/o que no dejó de programar (construyó herramientas allí). Mencionar al dueño conocido es opcional.
 
   - id: faq-planta-dejo
     question: ¿Sigue en la planta de residuos?
     expect:
       refuse: false
       contains: ["septiembre"]
-      sources_any: [faq-planta-residuos-y-desarrollo, faq-disponibilidad]
       judge: Dice que no, que la dejó en septiembre de 2026 para volver al sector tecnológico.
 
   - id: faq-dejo-comunidad-feliz

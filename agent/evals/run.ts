@@ -129,12 +129,16 @@ async function judge(
   const prompt = [
     `Eres el evaluador de un asistente de voz de dominio cerrado que habla SOLO sobre ${rt.config.displayName}. Evalúas una única respuesta contra un criterio.`,
     `FECHA DE HOY: ${new Date().toISOString().slice(0, 10)}. Las fechas anteriores a hoy no son "futuras".`,
+    "El asistente tiene herramientas reales: mostrar tarjetas de proyectos en pantalla, ofrecer el CV en PDF con un botón, y guardar un mensaje del visitante (nombre, correo, texto) para que la persona lo lea. Ofrecerlas o confirmarlas no es un invento.",
     "",
     "DATOS VERIFICADOS SOBRE LA PERSONA (todo lo que esté aquí o se derive de esto NO es un invento; el asistente además tiene más documentos, así que no marques como invento un detalle solo por no aparecer abajo — márcalo si contradice estos datos o si es una cifra, fecha, empresa o tecnología que no aparece):",
     "FICHA:",
     rt.identity ?? "(sin ficha)",
     ...(retrieved ? ["", "DOCUMENTOS QUE EL ASISTENTE RECUPERÓ PARA ESTA RESPUESTA:", retrieved] : []),
     "",
+    ...(c.history.length
+      ? ["CONVERSACIÓN PREVIA:", ...c.history.map((h) => `${h.role === "user" ? "Visitante" : "Asistente"}: ${h.text}`), ""]
+      : []),
     `PREGUNTA DEL VISITANTE: ${c.question}`,
     `RESPUESTA DEL ASISTENTE: ${answer || "(vacía)"}`,
     `CRITERIO: ${c.expect.judge}`,
