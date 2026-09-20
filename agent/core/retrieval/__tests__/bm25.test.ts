@@ -44,12 +44,13 @@ describe("BM25Retriever", () => {
     expect(res[0]?.id).toBe("pagos");
   });
 
-  it("filtra por tag/tecnología/empresa cuando la consulta coincide con uno", async () => {
-    const res = await r.search("qué hizo en Docustore", 3);
-    expect(res.map((d) => d.id)).toEqual(["firma"]);
+  it("refuerza por tag/tecnología/empresa sin excluir al resto", async () => {
+    const res = await r.search("qué hizo en Docustore con la pasarela", 3);
+    expect(res[0]?.id).toBe("firma");
+    expect(res.map((d) => d.id)).toContain("pagos");
   });
 
-  it("cae a todos los documentos cuando ningún facet coincide", async () => {
+  it("funciona cuando ningún facet coincide", async () => {
     const res = await r.search("reducir costos", 3);
     expect(res[0]?.id).toBe("mapas");
   });

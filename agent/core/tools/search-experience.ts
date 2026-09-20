@@ -6,7 +6,7 @@ const input = z.object({
     .string()
     .min(1)
     .describe(
-      "Lo que el visitante quiere saber, en lenguaje natural. Ej.: 'experiencia con pasarelas de pago', 'por qué dejó Alseco'.",
+      "Lo que el visitante quiere saber, en lenguaje natural y SIEMPRE EN ESPAÑOL aunque el visitante escriba en otro idioma (los documentos están en español). Ej.: 'experiencia con pasarelas de pago', 'por qué dejó Alseco'.",
     ),
 });
 

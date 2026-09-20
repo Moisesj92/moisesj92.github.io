@@ -5,6 +5,8 @@ const K1 = 1.2;
 const B = 0.75;
 /** Título, tags, tecnologías y empresa pesan más que el cuerpo. */
 const FIELD_BOOST = 3;
+/** Puntos extra por cada token de la consulta que es tag/tecnología/empresa del doc. */
+const FACET_BONUS = 1.5;
 
 interface IndexedDoc {
   doc: Document;
@@ -17,10 +19,11 @@ interface IndexedDoc {
 /**
  * Filtro por tags + BM25 sobre el Markdown plano (decisión del plan).
  *
- * 1. Si algún token de la consulta coincide con un tag, tecnología o
- *    empresa, solo se puntúan esos documentos. Si ninguno coincide, se
- *    puntúan todos.
- * 2. BM25 clásico con campos de cabecera repetidos FIELD_BOOST veces.
+ * 1. BM25 clásico con campos de cabecera repetidos FIELD_BOOST veces.
+ * 2. Cada token de la consulta que coincide con un tag, tecnología o
+ *    empresa del documento suma FACET_BONUS. Es un refuerzo, no un
+ *    filtro: un filtro excluyente dejaba fuera al documento correcto
+ *    cuando un token casual ("planta") era tag de otro.
  *
  * Migrar a vectores después es cambiar esta clase, no su interfaz.
  */
@@ -58,14 +61,13 @@ export class BM25Retriever implements Retriever {
     const terms = tokenize(query);
     if (terms.length === 0 || this.docs.length === 0) return [];
 
-    const filtered = this.docs.filter((d) => terms.some((t) => d.facets.has(t)));
-    const candidates = filtered.length > 0 ? filtered : this.docs;
     const N = this.docs.length;
 
-    const scored = candidates
+    const scored = this.docs
       .map((d) => {
         let score = 0;
         for (const t of terms) {
+          if (d.facets.has(t)) score += FACET_BONUS;
           const f = d.tf.get(t);
           if (!f) continue;
           const n = this.df.get(t) ?? 0;

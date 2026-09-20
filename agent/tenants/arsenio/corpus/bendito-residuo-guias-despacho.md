@@ -5,7 +5,7 @@ type: situation
 company: Comercial Bendito Residuo SpA
 period: 05/2026 – 09/2026
 role: Encargado de Trazabilidad y Valorización
-tags: [automatización, facturación electrónica, sii, nubox, operaciones, residuos]
+tags: [automatización, facturación electrónica, guías de despacho, sii, nubox, operaciones, residuos, planta, bendito residuo]
 technologies: [Nubox, SII, Drivin]
 ---
 Entre mayo y septiembre de 2026 Arsenio fue Encargado de Trazabilidad y Valorización en Comercial Bendito Residuo SpA, una planta de residuos en Santiago. Dirigió la trazabilidad de la planta con un equipo de nueve personas que pesa, descarga y procesa los residuos que luego se valorizan.
