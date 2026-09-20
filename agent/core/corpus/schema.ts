@@ -15,6 +15,7 @@ export const frontmatterSchema = z.object({
   role: z.string().min(1).optional(),
   tags: z.array(z.string().min(1)).min(1, "tags: al menos uno"),
   technologies: z.array(z.string().min(1)).default([]),
+  url: z.string().url().optional(),
 });
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
