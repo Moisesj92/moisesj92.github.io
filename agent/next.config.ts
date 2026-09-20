@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // El corpus y agent.yaml se leen del disco en runtime; el trazado de
+  // archivos no los detecta porque la ruta se arma dinámicamente.
+  outputFileTracingIncludes: {
+    "/api/**": ["./tenants/**/*"],
+  },
 };
 
 export default nextConfig;
