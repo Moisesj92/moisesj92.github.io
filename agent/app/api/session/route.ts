@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { loadTenant, resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { getTenantRuntime } from "@/core/runtime";
 import { createSessionGrant } from "@/core/session/grant";
 
 export const runtime = "nodejs";
@@ -21,8 +22,8 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json().catch(() => ({}))) as { tenant?: unknown };
     requested = typeof body.tenant === "string" ? body.tenant : undefined;
-    const config = await loadTenant(resolveTenantId(requested));
-    const grant = await createSessionGrant(config, apiKey);
+    const runtime = await getTenantRuntime(resolveTenantId(requested));
+    const grant = await createSessionGrant(runtime, apiKey);
     return NextResponse.json(grant, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     if (err instanceof TenantNotFoundError) {

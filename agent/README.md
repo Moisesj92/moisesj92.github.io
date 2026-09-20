@@ -5,7 +5,7 @@ Agente de voz de dominio cerrado con recuperación trazable, multi-tenant desde 
 - [`docs/plan.md`](docs/plan.md) — plan de trabajo por fases.
 - [`docs/decisions.md`](docs/decisions.md) — decisiones de arquitectura (ADR) y por qué la implementación se aparta del plan donde lo hace.
 
-**Estado:** Fase 0 (walking skeleton). Hablas, una voz contesta, puedes interrumpirla. El corpus está vacío a propósito: el agente debe rechazar cualquier pregunta sobre Arsenio hasta la Fase 1.
+**Estado:** Fase 1 en curso. La voz funciona (Fase 0) y el agente responde desde un corpus verificado con recuperación BM25. Faltan los "no" (`tenants/arsenio/corpus/_borradores/`), que escribe Arsenio.
 
 ## Cómo funciona (Fase 0)
 
@@ -33,12 +33,13 @@ La API key nunca sale del servidor. El navegador solo transporta tool calls; el 
 ## Estructura
 
 ```
-app/            UI (Next.js App Router) y route handlers /api/session, /api/tools
-core/           motor, TypeScript puro sin Next: config, prompt, retrieval, tools, session
+app/            UI (Next.js App Router): / (voz), /debug (texto con trazas)
+                route handlers: /api/session, /api/tools, /api/chat
+core/           motor, TypeScript puro sin Next: config, corpus, prompt, retrieval, tools, chat, session
 providers/      adaptadores de voz tras la interfaz VoiceProvider (gemini-live, web-speech)
 lib/audio/      captura y reproducción PCM con AudioWorklet
 public/worklets AudioWorkletProcessors (captura 16 kHz, reproducción 24 kHz con flush)
-tenants/<id>/   agent.yaml + corpus/ — todo lo específico de un tenant vive aquí
+tenants/<id>/   agent.yaml, identity.md (capa 0) y corpus/*.md — todo lo específico de un tenant
 evals/          casos y runner (Fase 3)
 ```
 
@@ -55,7 +56,11 @@ cp .env.example .env.local   # poner GEMINI_API_KEY (Google AI Studio, free tier
 pnpm dev
 ```
 
-Abrir <http://localhost:3000> en Chrome de escritorio, pulsar **Iniciar**, aceptar el micrófono.
+Abrir <http://localhost:3000> en Chrome de escritorio, pulsar **Iniciar**, aceptar el micrófono. Para trabajar el corpus sin gastar voz: <http://localhost:3000/debug>.
+
+```bash
+pnpm test        # tokenizador, BM25, schema del corpus y el corpus real del tenant
+```
 
 ## Deploy
 
