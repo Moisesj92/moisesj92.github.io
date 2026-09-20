@@ -13,7 +13,10 @@ export class PcmPlayer {
     private readonly node: AudioWorkletNode,
   ) {}
 
-  static async start(onPlayingChange: (playing: boolean) => void): Promise<PcmPlayer> {
+  static async start(
+    onPlayingChange: (playing: boolean) => void,
+    onLevel?: (level: number) => void,
+  ): Promise<PcmPlayer> {
     const ctx = createAudioContext(PLAYBACK_RATE);
     await ctx.audioWorklet.addModule("/worklets/playback-processor.js");
     const node = new AudioWorkletNode(ctx, "playback-processor", {
@@ -22,8 +25,9 @@ export class PcmPlayer {
       outputChannelCount: [1],
       processorOptions: { sourceRate: PLAYBACK_RATE },
     });
-    node.port.onmessage = (e: MessageEvent<{ type: string; playing: boolean }>) => {
-      if (e.data.type === "state") onPlayingChange(e.data.playing);
+    node.port.onmessage = (e: MessageEvent<{ type: string; playing?: boolean; value?: number }>) => {
+      if (e.data.type === "state") onPlayingChange(e.data.playing === true);
+      else if (e.data.type === "level" && onLevel) onLevel(e.data.value ?? 0);
     };
     node.connect(ctx.destination);
     return new PcmPlayer(ctx, node);

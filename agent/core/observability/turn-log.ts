@@ -13,6 +13,8 @@ export interface TurnLog {
   sources: string[];
   model?: string;
   ms?: number;
+  /** tiempo al primer audio de la sesión, solo en el primer turno de voz */
+  ttfaMs?: number;
   refused: boolean;
 }
 

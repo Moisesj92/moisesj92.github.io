@@ -41,7 +41,7 @@ export class GeminiLiveProvider implements VoiceProvider {
 
     // Saludo inmediato: el primer audio llega antes de que el usuario hable.
     this.session.sendClientContent({
-      turns: [{ role: "user", parts: [{ text: "Saluda brevemente al visitante." }] }],
+      turns: [{ role: "user", parts: [{ text: `Saluda al visitante diciendo exactamente esto y nada más: "${grant.greeting}"` }] }],
       turnComplete: true,
     });
   }

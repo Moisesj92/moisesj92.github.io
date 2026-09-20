@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ProjectCard, ToolResult, ToolUiEffect } from "@/core/types";
-import { MicCapture, MicDeniedError } from "@/lib/audio/capture";
+import type { ToolResult } from "@/core/types";
+import { InsecureContextError, MicCapture, MicDeniedError } from "@/lib/audio/capture";
 import { PcmPlayer } from "@/lib/audio/playback";
 import {
   createVoiceProvider,
@@ -10,6 +10,7 @@ import {
   type VoiceEvent,
   type VoiceProvider,
 } from "@/providers/voice";
+import { useUiEffects } from "./use-ui-effects";
 
 export type SessionState =
   | "idle"
@@ -26,23 +27,20 @@ export interface TranscriptLine {
   sources?: string[];
 }
 
-export interface DownloadOffer {
-  url: string;
-  label: string;
-}
-
 export interface LogEntry {
   t: number;
   msg: string;
 }
 
-const MAX_LOG = 60;
-/** Una tarjeta acompaña lo que se está diciendo; pasado esto, estorba. */
-const CARD_TTL_MS = 30_000;
+/** Por qué falló, para que la página ofrezca la salida correcta. */
+export type FailureKind = "mic" | "insecure" | "quota" | "offline" | "other";
 
-export interface ShownCard extends ProjectCard {
-  shownAt: number;
-}
+/** Con menos de esto por delante, un token precalentado no se usa. */
+const PREWARM_MIN_LEFT_MS = 10_000;
+/** Tokens precalentados por carga de página: un visitante que solo lee no genera tokens en bucle. */
+const PREWARM_MAX = 3;
+
+const MAX_LOG = 60;
 
 /**
  * Orquesta una sesión de voz: micrófono → proveedor → parlantes, y el
@@ -52,26 +50,38 @@ export interface ShownCard extends ProjectCard {
 export function useVoiceSession(tenant?: string) {
   const [state, setState] = useState<SessionState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<FailureKind | null>(null);
   const [level, setLevel] = useState(0);
+  const [agentLevel, setAgentLevel] = useState(0);
+  const [ttfaMs, setTtfaMs] = useState<number | null>(null);
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
-  const [cards, setCards] = useState<ShownCard[]>([]);
-  const [download, setDownload] = useState<DownloadOffer | null>(null);
+  const ui = useUiEffects();
 
   const mic = useRef<MicCapture | null>(null);
   const player = useRef<PcmPlayer | null>(null);
   const provider = useRef<VoiceProvider | null>(null);
   const grant = useRef<SessionGrant | null>(null);
+  /** token pedido por adelantado, listo para usar si aún sirve */
+  const prewarmed = useRef<Promise<SessionGrant> | null>(null);
+  const prewarmCount = useRef(0);
   const playing = useRef(false);
+  const clickedAt = useRef(0);
+  const firstAudioLogged = useRef(false);
   /** lo que va pasando en el turno actual, para atribución y para el log */
-  const turn = useRef<{ user: string; agent: string; sources: Set<string>; tools: { name: string; ok: boolean; ms: number }[]; startedAt: number }>({
-    user: "",
-    agent: "",
-    sources: new Set(),
-    tools: [],
-    startedAt: 0,
-  });
+  const turn = useRef<{
+    user: string;
+    agent: string;
+    sources: Set<string>;
+    tools: { name: string; ok: boolean; ms: number }[];
+    startedAt: number;
+    first: boolean;
+  }>({ user: "", agent: "", sources: new Set(), tools: [], startedAt: 0, first: true });
+  const ttfa = useRef<number | null>(null);
+
+  const applyUi = ui.apply;
+  const resetUi = ui.reset;
 
   const pushLog = useCallback((msg: string) => {
     setLog((l) => [...l.slice(-(MAX_LOG - 1)), { t: Date.now(), msg }]);
@@ -88,17 +98,6 @@ export function useVoiceSession(tenant?: string) {
       }
       return [...lines, { role, text }];
     });
-  }, []);
-
-  const applyUi = useCallback((ui: ToolUiEffect | undefined) => {
-    if (!ui) return;
-    if (ui.kind === "project-cards") {
-      const now = Date.now();
-      const ids = new Set(ui.cards.map((c) => c.id));
-      setCards((cs) => [...ui.cards.map((c) => ({ ...c, shownAt: now })), ...cs.filter((c) => !ids.has(c.id))].slice(0, 3));
-    } else if (ui.kind === "download") {
-      setDownload({ url: ui.url, label: ui.label });
-    }
   }, []);
 
   /** Cierra el turno: atribución en pantalla y registro en el servidor (sin audio). */
@@ -124,10 +123,11 @@ export function useVoiceSession(tenant?: string) {
         tools: t.tools,
         sources,
         ms: t.startedAt ? Math.round(performance.now() - t.startedAt) : undefined,
+        ttfaMs: t.first ? ttfa.current ?? undefined : undefined,
       }),
       keepalive: true,
     }).catch(() => {});
-    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now() };
+    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now(), first: false };
   }, [tenant]);
 
   const teardown = useCallback(async () => {
@@ -148,14 +148,98 @@ export function useVoiceSession(tenant?: string) {
   }, []);
 
   const fail = useCallback(
-    (message: string) => {
+    (message: string, kind: FailureKind = "other") => {
       setError(message);
+      setFailure(kind);
       setState("error");
-      pushLog(`error: ${message}`);
+      pushLog(`error (${kind}): ${message}`);
       void teardown();
     },
     [pushLog, teardown],
   );
+
+  /** Pide el token al servidor. Lanza con el tipo de fallo ya clasificado. */
+  const fetchGrant = useCallback(async (): Promise<SessionGrant> => {
+    let res: Response;
+    try {
+      res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tenant }),
+      });
+    } catch {
+      throw Object.assign(new Error("Sin conexión. Revisa tu red e inténtalo de nuevo."), { kind: "offline" as FailureKind });
+    }
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
+      const kind: FailureKind = body.reason === "quota" || res.status === 503 ? "quota" : "other";
+      throw Object.assign(new Error(body.error ?? `HTTP ${res.status}`), { kind });
+    }
+    return (await res.json()) as SessionGrant;
+  }, [tenant]);
+
+  /**
+   * Precalentar antes del click: el token tarda ~1 s en emitirse y eso se lo
+   * ahorra el primer audio. En escritorio la señal es el hover; en móvil no
+   * hay hover, así que también vale la primera interacción con la página o
+   * que el botón entre en pantalla (ver usePrewarmSignals). Si el token
+   * anterior ya venció sin usarse, se pide otro, hasta PREWARM_MAX.
+   */
+  const prewarm = useCallback(
+    (why: string) => {
+      if (state !== "idle" && state !== "error") return;
+      const request = () => {
+        if (prewarmCount.current >= PREWARM_MAX) {
+          pushLog(`precalentado: tope de ${PREWARM_MAX} por página alcanzado (${why})`);
+          return;
+        }
+        prewarmCount.current += 1;
+        const n = prewarmCount.current;
+        const started = performance.now();
+        prewarmed.current = fetchGrant()
+          .then((g) => {
+            pushLog(`precalentado: token ${n}/${PREWARM_MAX} listo en ${Math.round(performance.now() - started)} ms (${why}), sirve hasta ${new Date(g.connectBy).toLocaleTimeString()}`);
+            return g;
+          })
+          .catch((err) => {
+            prewarmed.current = null;
+            pushLog(`precalentado: falló (${err instanceof Error ? err.message : String(err)})`);
+            throw err;
+          });
+      };
+      if (!prewarmed.current) {
+        request();
+        return;
+      }
+      // ¿sigue sirviendo el que ya tenemos? Si venció sin usarse, se pide otro.
+      void prewarmed.current.then(
+        (g) => {
+          if (Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) {
+            pushLog(`precalentado: el token anterior venció sin usarse; pidiendo otro (${why})`);
+            prewarmed.current = null;
+            request();
+          }
+        },
+        () => {},
+      );
+    },
+    [fetchGrant, pushLog, state],
+  );
+
+  // Señales de intención que no dependen del hover: primera interacción con
+  // la página (scroll o toque en cualquier parte). Se registran una vez.
+  useEffect(() => {
+    const onIntent = (e: Event) => prewarm(`interacción: ${e.type}`);
+    const opts = { once: true, passive: true } as const;
+    window.addEventListener("pointerdown", onIntent, opts);
+    window.addEventListener("scroll", onIntent, opts);
+    window.addEventListener("keydown", onIntent, opts);
+    return () => {
+      window.removeEventListener("pointerdown", onIntent);
+      window.removeEventListener("scroll", onIntent);
+      window.removeEventListener("keydown", onIntent);
+    };
+  }, [prewarm]);
 
   const runTool = useCallback(
     async (call: { id: string; name: string; args: unknown }) => {
@@ -187,6 +271,13 @@ export function useVoiceSession(tenant?: string) {
           setState("listening");
           break;
         case "audio":
+          if (!firstAudioLogged.current) {
+            firstAudioLogged.current = true;
+            const ms = Math.round(performance.now() - clickedAt.current);
+            ttfa.current = ms;
+            setTtfaMs(ms);
+            pushLog(`primer audio a los ${ms} ms desde el click`);
+          }
           player.current?.push(e.pcm);
           break;
         case "interrupted":
@@ -208,7 +299,7 @@ export function useVoiceSession(tenant?: string) {
           break;
         case "error":
           if (e.recoverable) pushLog(`aviso: ${e.message}`);
-          else fail(e.message);
+          else fail(e.message, navigator.onLine ? "other" : "offline");
           break;
         case "closed":
           pushLog(`sesión cerrada (${e.reason ?? "sin motivo"})`);
@@ -222,19 +313,27 @@ export function useVoiceSession(tenant?: string) {
 
   const start = useCallback(async () => {
     setError(null);
+    setFailure(null);
     setTranscript([]);
-    setCards([]);
-    setDownload(null);
-    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now() };
+    setTtfaMs(null);
+    resetUi();
+    clickedAt.current = performance.now();
+    firstAudioLogged.current = false;
+    turn.current = { user: "", agent: "", sources: new Set(), tools: [], startedAt: performance.now(), first: true };
+    ttfa.current = null;
     setState("requesting-mic");
     try {
       // Ambos contextos se crean ahora, dentro del gesto del usuario (iOS).
-      const playerP = PcmPlayer.start((isPlaying) => {
-        playing.current = isPlaying;
-        setState((s) =>
-          s === "listening" || s === "speaking" ? (isPlaying ? "speaking" : "listening") : s,
-        );
-      });
+      const playerP = PcmPlayer.start(
+        (isPlaying) => {
+          playing.current = isPlaying;
+          if (!isPlaying) setAgentLevel(0);
+          setState((s) =>
+            s === "listening" || s === "speaking" ? (isPlaying ? "speaking" : "listening") : s,
+          );
+        },
+        setAgentLevel,
+      );
       const micP = MicCapture.start(({ pcm, level }) => {
         setLevel(level);
         provider.current?.sendAudio(pcm);
@@ -244,16 +343,15 @@ export function useVoiceSession(tenant?: string) {
       pushLog(`micrófono listo (contexto a ${mic.current.sampleRate} Hz)`);
 
       setState("connecting");
-      const res = await fetch("/api/session", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tenant }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? `HTTP ${res.status}`);
+      let g: SessionGrant | null = null;
+      if (prewarmed.current) {
+        g = await prewarmed.current.catch(() => null);
+        prewarmed.current = null;
+        if (g && Date.parse(g.connectBy) - Date.now() < PREWARM_MIN_LEFT_MS) g = null;
+        if (g) pushLog("usando token precalentado: el click no espera al servidor");
+        else pushLog("el token precalentado ya no servía; pidiendo uno nuevo");
       }
-      grant.current = (await res.json()) as SessionGrant;
+      grant.current = g ?? (await fetchGrant());
       setExpiresAt(grant.current.expiresAt);
       pushLog(`token recibido, modelo ${grant.current.model}, vence ${grant.current.expiresAt}`);
 
@@ -261,28 +359,15 @@ export function useVoiceSession(tenant?: string) {
       await provider.current.connect(grant.current, onEvent);
     } catch (err) {
       if (err instanceof MicDeniedError) {
-        fail("Necesito el micrófono para conversar. Puedes habilitarlo en el candado de la barra de direcciones.");
+        fail("Necesito el micrófono para conversar. Puedes habilitarlo en el candado de la barra de direcciones.", "mic");
+      } else if (err instanceof InsecureContextError) {
+        fail(err.message, "insecure");
       } else {
-        fail(err instanceof Error ? err.message : String(err));
+        const kind = (err as { kind?: FailureKind }).kind ?? (navigator.onLine ? "other" : "offline");
+        fail(err instanceof Error ? err.message : String(err), kind);
       }
     }
-  }, [fail, onEvent, pushLog, tenant]);
-
-  const dismissCard = useCallback((id: string) => {
-    setCards((cs) => cs.filter((c) => c.id !== id));
-  }, []);
-
-  const dismissDownload = useCallback(() => setDownload(null), []);
-
-  // Las tarjetas caducan solas: se revisa una vez por segundo mientras haya alguna.
-  useEffect(() => {
-    if (cards.length === 0) return;
-    const t = setInterval(() => {
-      const cutoff = Date.now() - CARD_TTL_MS;
-      setCards((cs) => (cs.some((c) => c.shownAt < cutoff) ? cs.filter((c) => c.shownAt >= cutoff) : cs));
-    }, 1000);
-    return () => clearInterval(t);
-  }, [cards.length]);
+  }, [fail, fetchGrant, onEvent, pushLog, resetUi]);
 
   const stop = useCallback(async () => {
     await teardown();
@@ -299,14 +384,18 @@ export function useVoiceSession(tenant?: string) {
   return {
     state,
     error,
+    failure,
     level,
+    agentLevel,
+    ttfaMs,
+    prewarm,
     transcript,
     log,
     expiresAt,
-    cards,
-    download,
-    dismissCard,
-    dismissDownload,
+    cards: ui.cards,
+    download: ui.download,
+    dismissCard: ui.dismissCard,
+    dismissDownload: ui.dismissDownload,
     start,
     stop,
   };
