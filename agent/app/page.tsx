@@ -132,7 +132,7 @@ function VoicePanel({
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          prewarm();
+          prewarm("botón visible");
           io.disconnect();
         }
       },
@@ -156,9 +156,9 @@ function VoicePanel({
           <button
             ref={startBtn}
             onClick={start}
-            onMouseEnter={prewarm}
-            onFocus={prewarm}
-            onTouchStart={prewarm}
+            onMouseEnter={() => prewarm("hover")}
+            onFocus={() => prewarm("foco")}
+            onTouchStart={() => prewarm("touchstart")}
             disabled={busy}
             style={btn("var(--accent)")}
           >
