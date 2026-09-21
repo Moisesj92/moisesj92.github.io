@@ -26,6 +26,10 @@ export interface ChatTurn {
 
 /** Tope de rondas de tools por turno; evita loops si el modelo insiste. */
 const MAX_ROUNDS = 4;
+/** Pausa antes de la segunda vuelta de intentos cuando todos los modelos están saturados. */
+const RETRY_PAUSE_MS = 2000;
+/** Ninguna llamada al modelo puede tardar más que esto; en voz, más es una conversación muerta. */
+const PER_CALL_TIMEOUT_MS = 15_000;
 
 /** Cuota agotada o modelo saturado: el primer escalón de la cascada de degradación. */
 export class ModelUnavailableError extends Error {
@@ -54,7 +58,16 @@ export async function runTextTurn(
 ): Promise<ChatTurn> {
   const { config, registry } = runtime;
   const ctx = toolContext(runtime, sessionId, ipHash);
-  const ai = new GoogleGenAI({ apiKey });
+  // El SDK reintenta 429/503 por su cuenta con espera exponencial (hasta
+  // minutos). Aquí se acota: un reintento corto y timeout por llamada; la
+  // cascada de modelos de abajo decide antes de que el visitante se aburra.
+  const ai = new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      timeout: PER_CALL_TIMEOUT_MS,
+      retryOptions: { attempts: 2, initialDelay: 1, maxDelay: 2, jitter: 0.2 },
+    },
+  });
 
   const contents: Content[] = [
     ...history.map<Content>((m) => ({
@@ -71,7 +84,12 @@ export async function runTextTurn(
     tools: [{ functionDeclarations: registry.declarations() }],
     temperature: 0.2,
   };
-  let model = config.text.model;
+  // Orden de intentos ante 429/503: principal, respaldo, pausa, principal,
+  // respaldo. Las saturaciones de Gemini suelen durar segundos.
+  const models = [config.text.model, config.text.fallbackModel].filter((m): m is string => !!m);
+  const attempts = [...models, ...models];
+  let attempt = 0;
+  let model = attempts[0];
 
   for (let round = 0; round <= MAX_ROUNDS; round++) {
     let response;
@@ -79,10 +97,11 @@ export async function runTextTurn(
       response = await ai.models.generateContent({ model, contents, config: generationConfig });
     } catch (err) {
       if (!isUnavailable(err)) throw err;
-      const fallback = config.text.fallbackModel;
-      if (!fallback || model === fallback) throw new ModelUnavailableError(err.status);
-      console.warn(`[chat] ${model} respondió ${err.status}; reintentando con ${fallback}`);
-      model = fallback;
+      attempt++;
+      if (attempt >= attempts.length) throw new ModelUnavailableError(err.status);
+      if (attempt === models.length) await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS));
+      console.warn(`[chat] ${model} respondió ${err.status}; reintentando con ${attempts[attempt]}`);
+      model = attempts[attempt];
       round--;
       continue;
     }

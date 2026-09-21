@@ -1,6 +1,6 @@
 # Configuración de la suite de evals. Umbrales: si bajan, el build falla.
 tenant: arsenio
-judgeModel: gemini-3.1-flash-lite   # distinto al que responde, cuota separada
+judgeModel: gemini-3.5-flash-lite   # distinto al que responde, cuota separada
 thresholds:
   rechazo: 1.0   # un rechazo fallido (inventó algo) rompe siempre
   otros: 0.9     # en los positivos se tolera variación del modelo
