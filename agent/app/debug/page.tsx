@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+
+import { Button } from "@/components/Button";
+import { SimpleLayout } from "@/components/SimpleLayout";
 
 interface Step {
   name: string;
@@ -67,55 +69,16 @@ export default function DebugPage() {
   }
 
   return (
-    <main>
-      <h1>Debug · chat de texto</h1>
-      <p style={{ color: "var(--muted)" }}>
-        Mismo prompt, tools y retriever que la voz. Cada turno muestra qué documentos se
-        recuperaron. <Link href="/">Volver a la voz</Link>
-      </p>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {turns.map((t, i) => (
-          <article key={i} style={box}>
-            <p style={{ margin: "0 0 8px" }}>
-              <strong>Tú:</strong> {t.user}
-            </p>
-            {t.steps.map((s, j) => (
-              <details key={j} style={{ margin: "4px 0", fontSize: 13 }}>
-                <summary style={{ cursor: "pointer", color: "var(--muted)" }}>
-                  🔧 {s.name}({JSON.stringify(s.args)}) · {s.ms} ms ·{" "}
-                  {s.result.ok ? `${s.result.sources?.length ?? 0} doc(s)` : `error: ${s.result.error}`}
-                </summary>
-                <pre style={pre}>{JSON.stringify(s.result.data, null, 2)}</pre>
-              </details>
-            ))}
-            {t.agent !== undefined && (
-              <p style={{ margin: "8px 0 0" }}>
-                <strong>Agente:</strong> {t.agent || <em>(respuesta vacía)</em>}
-              </p>
-            )}
-            {t.error && (
-              <p role="alert" style={{ color: "var(--danger)", margin: "8px 0 0" }}>
-                {t.error}
-              </p>
-            )}
-            {t.agent === undefined && !t.error && <p style={{ color: "var(--muted)" }}>…</p>}
-            {(t.sources.length > 0 || t.ms) && (
-              <p style={{ color: "var(--muted)", fontSize: 12, margin: "8px 0 0" }}>
-                {t.sources.length > 0 ? `fuentes: ${t.sources.join(", ")}` : "sin fuentes"}
-                {t.ms ? ` · ${t.ms} ms` : ""}
-              </p>
-            )}
-          </article>
-        ))}
-      </div>
-
+    <SimpleLayout
+      title="Depuración"
+      intro="Mismo prompt, tools y retriever que la voz. Cada turno muestra qué documentos se recuperaron, qué tools se llamaron y cuánto tardó."
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void send();
         }}
-        style={{ display: "flex", gap: 8, marginTop: 16 }}
+        className="flex gap-3"
       >
         <input
           value={input}
@@ -123,46 +86,53 @@ export default function DebugPage() {
           placeholder="Pregunta algo incómodo…"
           disabled={busy}
           autoFocus
-          style={{
-            flex: 1,
-            padding: "10px 12px",
-            fontSize: 16,
-            borderRadius: 8,
-            border: "1px solid var(--border)",
-            background: "var(--background)",
-            color: "var(--foreground)",
-          }}
+          aria-label="Pregunta"
+          className="min-w-0 flex-auto appearance-none rounded-md border border-zinc-900/10 bg-white px-3 py-[calc(--spacing(2)-1px)] shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-hidden sm:text-sm dark:border-zinc-700 dark:bg-zinc-700/[0.15] dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
         />
-        <button
-          type="submit"
-          disabled={busy || !input.trim()}
-          style={{
-            background: "var(--accent)",
-            color: "#fff",
-            border: 0,
-            borderRadius: 8,
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
+        <Button type="submit" disabled={busy || !input.trim()} className="flex-none">
           {busy ? "…" : "Enviar"}
-        </button>
+        </Button>
       </form>
-    </main>
+
+      <div className="mt-10 space-y-6">
+        {turns.map((t, i) => (
+          <article key={i} className="rounded-2xl border border-zinc-100 p-6 text-sm dark:border-zinc-700/40">
+            <p>
+              <span className="font-semibold text-zinc-800 dark:text-zinc-100">Tú: </span>
+              <span className="text-zinc-600 dark:text-zinc-400">{t.user}</span>
+            </p>
+            {t.steps.map((s, j) => (
+              <details key={j} className="mt-3 text-xs">
+                <summary className="cursor-pointer text-zinc-400 dark:text-zinc-500">
+                  🔧 {s.name}({JSON.stringify(s.args)}) · {s.ms} ms ·{" "}
+                  {s.result.ok ? `${s.result.sources?.length ?? 0} doc(s)` : `error: ${s.result.error}`}
+                </summary>
+                <pre className="mt-2 max-h-60 overflow-auto rounded-xl bg-zinc-50 p-3 whitespace-pre-wrap text-zinc-600 dark:bg-zinc-800/50 dark:text-zinc-400">
+                  {JSON.stringify(s.result.data, null, 2)}
+                </pre>
+              </details>
+            ))}
+            {t.agent !== undefined && (
+              <p className="mt-3">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">Agente: </span>
+                <span className="text-zinc-600 dark:text-zinc-400">{t.agent || <em>(respuesta vacía)</em>}</span>
+              </p>
+            )}
+            {t.error && (
+              <p role="alert" className="mt-3 text-red-600 dark:text-red-400">
+                {t.error}
+              </p>
+            )}
+            {t.agent === undefined && !t.error && <p className="mt-3 text-zinc-400">…</p>}
+            {(t.sources.length > 0 || t.ms) && (
+              <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+                {t.sources.length > 0 ? `fuentes: ${t.sources.join(", ")}` : "sin fuentes"}
+                {t.ms ? ` · ${t.ms} ms` : ""}
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
+    </SimpleLayout>
   );
 }
-
-const box: React.CSSProperties = {
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  padding: 12,
-};
-const pre: React.CSSProperties = {
-  fontSize: 12,
-  whiteSpace: "pre-wrap",
-  wordBreak: "break-word",
-  maxHeight: 240,
-  overflow: "auto",
-  margin: "6px 0 0",
-};

@@ -49,7 +49,7 @@ export const agentConfigSchema = z.object({
     .object({
       primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
     })
-    .default({ primaryColor: "#49bf9d" }),
+    .default({ primaryColor: "#14b8a6" }),
 });
 
 export type AgentConfig = z.infer<typeof agentConfigSchema>;
