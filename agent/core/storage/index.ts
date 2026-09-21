@@ -1,17 +1,34 @@
-import { MemoryMessageStore } from "./memory";
-import { PostgresMessageStore } from "./postgres";
-import type { MessageStore } from "./types";
+import { MemoryMessageStore, MemoryUsageStore } from "./memory";
+import { PostgresDb, PostgresMessageStore, PostgresUsageStore } from "./postgres";
+import type { MessageStore, UsageStore } from "./types";
 
-let store: MessageStore | null = null;
+let db: PostgresDb | null | undefined;
+let messages: MessageStore | null = null;
+let usage: UsageStore | null = null;
 
-/** Postgres si hay DATABASE_URL; memoria en desarrollo. Uno por proceso. */
-export function getMessageStore(): MessageStore {
-  if (!store) {
-    // Neon vía Vercel define DATABASE_URL y POSTGRES_URL; cualquiera sirve.
+/** Neon vía Vercel define DATABASE_URL y POSTGRES_URL; cualquiera sirve. Sin ninguna, memoria (desarrollo). */
+function getDb(): PostgresDb | null {
+  if (db === undefined) {
     const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-    store = url ? new PostgresMessageStore(url) : new MemoryMessageStore();
+    db = url ? new PostgresDb(url) : null;
   }
-  return store;
+  return db;
 }
 
-export type { MessageStore, VisitorMessage } from "./types";
+export function getMessageStore(): MessageStore {
+  if (!messages) {
+    const d = getDb();
+    messages = d ? new PostgresMessageStore(d) : new MemoryMessageStore();
+  }
+  return messages;
+}
+
+export function getUsageStore(): UsageStore {
+  if (!usage) {
+    const d = getDb();
+    usage = d ? new PostgresUsageStore(d) : new MemoryUsageStore();
+  }
+  return usage;
+}
+
+export type { MessageStore, UsageKind, UsageStore, VisitorMessage } from "./types";

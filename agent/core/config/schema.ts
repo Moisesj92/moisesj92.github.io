@@ -31,6 +31,13 @@ export const agentConfigSchema = z.object({
     warningAtSeconds: z.number().int().positive(),
     /** mensajes de `dejar_mensaje` por IP y día */
     messagesPerIpPerDay: z.number().int().positive().default(3),
+    /** tokens de voz por IP y día (un precalentado sin usar también cuenta) */
+    voiceSessionsPerIpPerDay: z.number().int().positive().default(10),
+    /** turnos de texto por IP y día */
+    textTurnsPerIpPerDay: z.number().int().positive().default(40),
+    /** presupuesto diario del tenant: al llegar, el canal se cierra solo (kill-switch automático) */
+    voiceSessionsPerDay: z.number().int().positive().default(60),
+    textTurnsPerDay: z.number().int().positive().default(300),
   }),
   links: z
     .object({

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ModelUnavailableError, runTextTurn } from "@/core/chat/text";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { checkAndRecordUsage } from "@/core/guard/usage";
 import { logTurn } from "@/core/observability/turn-log";
 import { getTenantRuntime } from "@/core/runtime";
 import { hashIp, requestIp } from "@/core/session/visitor";
@@ -37,8 +38,16 @@ export async function POST(request: Request) {
 
   try {
     const rt = await getTenantRuntime(resolveTenantId(tenant));
+    const ipHash = hashIp(requestIp(request));
+    const usage = await checkAndRecordUsage(rt.config, "text_turn", ipHash);
+    if (!usage.ok) {
+      return NextResponse.json(
+        { error: usage.message, reason: usage.reason },
+        { status: usage.reason === "rate_limit" ? 429 : 503, headers: { "Retry-After": String(usage.retryAfterSeconds) } },
+      );
+    }
     const started = performance.now();
-    const turn = await runTextTurn(rt, apiKey, history, message, sessionId, hashIp(requestIp(request)));
+    const turn = await runTextTurn(rt, apiKey, history, message, sessionId, ipHash);
     logTurn({
       channel: "text",
       tenant: rt.config.id,

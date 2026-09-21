@@ -39,6 +39,14 @@ limits:
   sessionSeconds: 300
   warningAtSeconds: 240
   messagesPerIpPerDay: 3
+  # Por IP y día. Un token de voz precalentado sin usar también cuenta.
+  voiceSessionsPerIpPerDay: 10
+  textTurnsPerIpPerDay: 40
+  # Presupuesto diario del tenant (ventana móvil de 24 h). Al llegar, el
+  # canal se cierra solo y avisa por webhook al 50 % y al 100 %. Texto:
+  # los lite tienen 500 peticiones/día y un turno son 1-2 (ADR-007).
+  voiceSessionsPerDay: 60
+  textTurnsPerDay: 250
 
 links:
   cvPdf: https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf

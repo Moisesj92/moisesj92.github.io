@@ -74,6 +74,19 @@ Las evals (`evals/cases/*.yaml`) corren contra la ruta de texto con reglas deter
 
 `live-check` abre una sesión Gemini Live con el token del tenant, ejecuta los tools con el registry real y marca `LEAK` si el modelo narra JSON en vez de hablar. Es la forma de reproducir comportamientos de la voz desde la terminal.
 
+## Contención de abuso y costo
+
+Todo en `agent.yaml` → `limits` y en el guardián `core/guard/usage.ts`, sobre la tabla `usage_events` (sin contenido, solo contadores):
+
+| Control | Dónde | Qué pasa al superarlo |
+|---|---|---|
+| Rate limit por IP y día | voz (tokens), texto (turnos), mensajes | 429; la UI ofrece seguir por texto |
+| Presupuesto diario del tenant | voz, texto | 503, el canal se cierra solo (kill-switch automático) |
+| Alerta al 50 % y 100 % | correo (`SMTP_URL` + `ALERT_EMAIL_TO`, Gmail con contraseña de aplicación) y/o `ALERT_WEBHOOK_URL` | sin variables, solo log |
+| Kill-switch manual | `AGENT_KILL_SWITCH=voice\|text\|all` | 503 inmediato |
+
+Ventana móvil de 24 h. Un token de voz precalentado sin usar también cuenta (es el único punto del servidor).
+
 ## Deploy
 
 Vercel, importando este repo con **Root Directory = `agent`** y las variables `GEMINI_API_KEY` y `DEFAULT_TENANT=arsenio`. La landing estática sigue en GitHub Pages desde la raíz del repo ([ADR-001](docs/decisions.md#adr-001--un-repo-dos-deploys)).

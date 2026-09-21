@@ -172,7 +172,9 @@ export function useVoiceSession(tenant?: string) {
     }
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
-      const kind: FailureKind = body.reason === "quota" || res.status === 503 ? "quota" : "other";
+      // Cuota, presupuesto, rate limit o kill-switch: la voz no está, el texto sí.
+      const voiceDown = ["quota", "budget", "rate_limit", "kill_switch"].includes(body.reason ?? "");
+      const kind: FailureKind = voiceDown || res.status === 503 || res.status === 429 ? "quota" : "other";
       throw Object.assign(new Error(body.error ?? `HTTP ${res.status}`), { kind });
     }
     return (await res.json()) as SessionGrant;

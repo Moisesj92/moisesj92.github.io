@@ -21,3 +21,15 @@ export interface MessageStore {
   /** ¿la misma sesión ya dejó este mismo mensaje? (idempotencia ante reintentos del modelo) */
   hasDuplicate(sessionId: string, email: string, body: string, since: Date): Promise<boolean>;
 }
+
+export type UsageKind = "voice_session" | "text_turn";
+
+/**
+ * Contadores de uso: rate limit por IP y presupuesto diario por tenant.
+ * Sin contenido; una fila por evento.
+ */
+export interface UsageStore {
+  record(tenant: string, kind: UsageKind, ipHash: string): Promise<void>;
+  countByIp(ipHash: string, kind: UsageKind, since: Date): Promise<number>;
+  countByTenant(tenant: string, kind: UsageKind, since: Date): Promise<number>;
+}
