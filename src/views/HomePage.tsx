@@ -3,9 +3,14 @@ import Link from 'next/link'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Container } from '@/components/Container'
+import { Photos } from '@/components/Photos'
 import { GitHubIcon, LinkedInIcon } from '@/components/SocialIcons'
 import { getDictionary, type Dictionary, type Locale } from '@/i18n'
 import { site } from '@/lib/site'
+import imageSantiago from '@/images/photos/santiago.jpg'
+import imageEscritorio from '@/images/photos/escritorio.jpg'
+import imageParque from '@/images/photos/parque.jpg'
+import imageEquipo from '@/images/photos/equipo.jpg'
 
 function MailIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -222,6 +227,7 @@ export function HomePage({ locale }: { locale: Locale }) {
           </div>
         </div>
       </Container>
+      <Photos images={[imageSantiago, imageEscritorio, imageParque, imageEquipo]} />
       <Container className="mt-24 md:mt-28">
         <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
           <div className="flex flex-col gap-16">

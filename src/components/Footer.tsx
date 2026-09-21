@@ -34,9 +34,26 @@ export function Footer({ locale }: { locale: Locale }) {
                 <NavLink href={localePath(locale, '/about')}>{t.nav.about}</NavLink>
                 <NavLink href={localePath(locale, '/projects')}>{t.nav.projects}</NavLink>
               </div>
-              <p className="text-sm text-zinc-400 dark:text-zinc-500">
-                &copy; {new Date().getFullYear()} {site.name}. {t.footer.rights}
-              </p>
+              <div className="text-center text-sm text-zinc-400 md:text-right dark:text-zinc-500">
+                <p>
+                  &copy; {new Date().getFullYear()} {site.name}. {t.footer.rights}
+                </p>
+                <p className="mt-1 text-xs">
+                  {t.footer.photos}{' '}
+                  {site.photoCredits.map((c, i) => (
+                    <span key={c.url}>
+                      <a href={c.url} className="transition hover:text-teal-500" target="_blank" rel="noopener noreferrer">
+                        {c.name}
+                      </a>
+                      {i < site.photoCredits.length - 1 ? ', ' : ' '}
+                    </span>
+                  ))}
+                  {t.footer.on}{' '}
+                  <a href="https://unsplash.com" className="transition hover:text-teal-500" target="_blank" rel="noopener noreferrer">
+                    Unsplash
+                  </a>
+                </p>
+              </div>
             </div>
           </ContainerInner>
         </div>
