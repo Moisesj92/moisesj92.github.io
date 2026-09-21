@@ -1,4 +1,4 @@
-import type { MessageStore, VisitorMessage } from "./types";
+import type { MessageStore, UsageKind, UsageStore, VisitorMessage } from "./types";
 
 /**
  * Almacén en memoria para desarrollo sin base de datos. En serverless no
@@ -26,5 +26,20 @@ export class MemoryMessageStore implements MessageStore {
     return this.messages.some(
       (m) => m.sessionId === sessionId && m.email === email && m.body === body && m.createdAt >= since,
     );
+  }
+}
+
+/** Contadores en memoria para desarrollo. */
+export class MemoryUsageStore implements UsageStore {
+  private readonly events: { tenant: string; kind: UsageKind; ipHash: string; at: Date }[] = [];
+
+  async record(tenant: string, kind: UsageKind, ipHash: string): Promise<void> {
+    this.events.push({ tenant, kind, ipHash, at: new Date() });
+  }
+  async countByIp(ipHash: string, kind: UsageKind, since: Date): Promise<number> {
+    return this.events.filter((e) => e.ipHash === ipHash && e.kind === kind && e.at >= since).length;
+  }
+  async countByTenant(tenant: string, kind: UsageKind, since: Date): Promise<number> {
+    return this.events.filter((e) => e.tenant === tenant && e.kind === kind && e.at >= since).length;
   }
 }

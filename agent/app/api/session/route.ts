@@ -1,8 +1,10 @@
 import { ApiError } from "@google/genai";
 import { NextResponse } from "next/server";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { checkAndRecordUsage } from "@/core/guard/usage";
 import { getTenantRuntime } from "@/core/runtime";
 import { createSessionGrant } from "@/core/session/grant";
+import { hashIp, requestIp } from "@/core/session/visitor";
 
 export const runtime = "nodejs";
 
@@ -24,6 +26,13 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => ({}))) as { tenant?: unknown };
     requested = typeof body.tenant === "string" ? body.tenant : undefined;
     const runtime = await getTenantRuntime(resolveTenantId(requested));
+    const usage = await checkAndRecordUsage(runtime.config, "voice_session", hashIp(requestIp(request)));
+    if (!usage.ok) {
+      return NextResponse.json(
+        { error: usage.message, reason: usage.reason },
+        { status: usage.reason === "rate_limit" ? 429 : 503, headers: { "Retry-After": String(usage.retryAfterSeconds) } },
+      );
+    }
     const grant = await createSessionGrant(runtime, apiKey);
     return NextResponse.json(grant, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
