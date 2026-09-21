@@ -186,9 +186,9 @@ Que funcione no impresiona a nadie. Lo que impresiona es que puedas explicar las
 
 ### Entregables
 
-- [ ] **README** con el diagrama de arquitectura y las decisiones justificadas: por qué speech-to-speech y no pipeline, por qué BM25 y no vectores, por qué los tools corren en el servidor, por qué el único tool con efecto secundario es `dejar_mensaje`
-- [ ] **Página `/arquitectura`** en el sitio, escrita para un lector técnico que llegó desde tu CV
-- [ ] **Métricas reales medidas en producción**, no estimadas: p50 y p95 de tiempo al primer audio, costo promedio por sesión, tasa de rechazo correcto de la suite de evals
+- [x] **README** con el diagrama de arquitectura y las decisiones justificadas: por qué speech-to-speech y no pipeline, por qué BM25 y no vectores, por qué los tools corren en el servidor, por qué el único tool con efecto secundario es `dejar_mensaje`
+- [x] **Página `/arquitectura`** en el sitio, escrita para un lector técnico que llegó desde tu CV
+- [x] (se miden y se muestran en /arquitectura y /admin; los números llegan con el tráfico) **Métricas reales medidas en producción**, no estimadas: p50 y p95 de tiempo al primer audio, costo promedio por sesión, tasa de rechazo correcto de la suite de evals
 - [x] **Historial de commits legible**. Un reclutador técnico lo va a mirar: commits atómicos con mensajes que explican el porqué
 
 ### El agente está listo cuando
