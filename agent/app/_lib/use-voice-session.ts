@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ToolResult } from "@/core/types";
 import { InsecureContextError, MicCapture, MicDeniedError } from "@/lib/audio/capture";
+import { getTurnstileToken } from "@/lib/turnstile";
 import { PcmPlayer } from "@/lib/audio/playback";
 import {
   createVoiceProvider,
@@ -165,23 +166,28 @@ export function useVoiceSession(tenant?: string) {
   const fetchGrant = useCallback(async (): Promise<SessionGrant> => {
     let res: Response;
     try {
+      // Turnstile invisible (si está configurado): un token de un solo uso por petición.
+      const turnstileToken = await getTurnstileToken().catch((err: Error) => {
+        pushLog(`turnstile: ${err.message}; se intenta sin él`);
+        return null;
+      });
       res = await fetch("/api/session", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tenant }),
+        body: JSON.stringify({ tenant, turnstileToken }),
       });
     } catch {
       throw Object.assign(new Error("Sin conexión. Revisa tu red e inténtalo de nuevo."), { kind: "offline" as FailureKind });
     }
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
-      // Cuota, presupuesto, rate limit o kill-switch: la voz no está, el texto sí.
-      const voiceDown = ["quota", "budget", "rate_limit", "kill_switch"].includes(body.reason ?? "");
+      // Cuota, presupuesto, rate limit, kill-switch o anti-bot: la voz no está, el texto sí.
+      const voiceDown = ["quota", "budget", "rate_limit", "kill_switch", "turnstile"].includes(body.reason ?? "");
       const kind: FailureKind = voiceDown || res.status === 503 || res.status === 429 ? "quota" : "other";
       throw Object.assign(new Error(body.error ?? `HTTP ${res.status}`), { kind });
     }
     return (await res.json()) as SessionGrant;
-  }, [tenant]);
+  }, [pushLog, tenant]);
 
   /**
    * Precalentar antes del click: el token tarda ~1 s en emitirse y eso se lo
