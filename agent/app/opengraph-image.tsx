@@ -5,6 +5,7 @@ import { ImageResponse } from 'next/og'
 import { resolveTenantId } from '@/core/config/load'
 import { getTenantRuntime } from '@/core/runtime'
 
+export const dynamic = 'force-dynamic'
 export const alt = 'Asistente de voz'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
