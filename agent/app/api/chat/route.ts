@@ -37,9 +37,12 @@ export async function POST(request: Request) {
   const sessionId = parsed.data.sessionId ?? crypto.randomUUID();
 
   try {
+    const requestStarted = performance.now();
     const rt = await getTenantRuntime(resolveTenantId(tenant));
     const ipHash = hashIp(requestIp(request));
+    const guardStarted = performance.now();
     const usage = await checkAndRecordUsage(rt.config, "text_turn", ipHash);
+    const guardMs = Math.round(performance.now() - guardStarted);
     if (!usage.ok) {
       return NextResponse.json(
         { error: usage.message, reason: usage.reason },
@@ -60,7 +63,10 @@ export async function POST(request: Request) {
       ms: Math.round(performance.now() - started),
       refused: turn.text.includes(rt.config.refusalPhrase),
     });
-    return NextResponse.json({ sessionId, ...turn }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      { sessionId, ...turn, timing: { ...turn.timing, guardMs, serverMs: Math.round(performance.now() - requestStarted) } },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (err) {
     if (err instanceof TenantNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
