@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     "/arquitectura": ["./evals/reports/*"],
     "/admin": ["./core/storage/schema.sql"],
     "/privacidad": ["./tenants/**/*"],
+    "/opengraph-image": ["./tenants/**/*", "./images/*"],
   },
 };
 

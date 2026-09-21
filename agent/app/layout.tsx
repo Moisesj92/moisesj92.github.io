@@ -7,8 +7,15 @@ import { site } from '@/lib/site'
 import '@/styles/tailwind.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_AGENT_URL ?? 'https://voice-agent-flax-six.vercel.app'),
   title: { template: `%s — ${site.name}`, default: `Asistente de voz — ${site.name}` },
-  description: 'Agente de voz de dominio cerrado con recuperación trazable.',
+  description: 'Habla con el asistente de voz de Arsenio Jiménez: responde sobre su experiencia y sus proyectos solo con información verificada.',
+  openGraph: {
+    type: 'website',
+    siteName: `Asistente de voz — ${site.name}`,
+    locale: 'es_CL',
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 /** Misma estructura que RootLayout del portafolio, sin locales. */
