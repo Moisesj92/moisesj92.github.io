@@ -1,9 +1,41 @@
 import type { AgentConfig } from "../config/schema";
-import { getUsageStore } from "../storage";
+import { getSettingsStore, getUsageStore } from "../storage";
 import type { UsageKind } from "../storage/types";
 import { sendAlert } from "./alert";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const KILL_SWITCH_KEY = "kill_switch";
+export type KillSwitch = "" | "voice" | "text" | "all";
+const KILL_CACHE_MS = 15_000;
+let killCache: { value: KillSwitch; at: number } | null = null;
+
+/**
+ * Kill-switch efectivo: el de la base (/admin, aplica al instante) o el de
+ * entorno (AGENT_KILL_SWITCH, requiere redeploy). Cache corta por proceso.
+ */
+export async function getKillSwitch(): Promise<KillSwitch> {
+  const env = process.env.AGENT_KILL_SWITCH as KillSwitch | undefined;
+  if (env === "all") return "all";
+  if (!killCache || Date.now() - killCache.at > KILL_CACHE_MS) {
+    let value: KillSwitch = "";
+    try {
+      value = ((await getSettingsStore().get(KILL_SWITCH_KEY)) ?? "") as KillSwitch;
+    } catch (err) {
+      console.warn("[guard] no se pudo leer el kill-switch:", err instanceof Error ? err.message : err);
+    }
+    killCache = { value, at: Date.now() };
+  }
+  const db = killCache.value;
+  if (db === "all" || env === db) return db || env || "";
+  if (env && db) return "all";
+  return db || env || "";
+}
+
+export async function setKillSwitch(value: KillSwitch): Promise<void> {
+  await getSettingsStore().set(KILL_SWITCH_KEY, value);
+  killCache = { value, at: Date.now() };
+}
 
 export type UsageDenial =
   | { ok: false; reason: "kill_switch" | "budget" | "rate_limit"; message: string; retryAfterSeconds: number }
@@ -25,7 +57,7 @@ export async function checkAndRecordUsage(
   ipHash: string,
 ): Promise<UsageDenial> {
   const channel = kind === "voice_session" ? "voz" : "texto";
-  const kill = process.env.AGENT_KILL_SWITCH;
+  const kill = await getKillSwitch();
   if (kill === "all" || (kill === "voice" && kind === "voice_session") || (kill === "text" && kind === "text_turn")) {
     return {
       ok: false,
