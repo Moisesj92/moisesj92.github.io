@@ -83,8 +83,8 @@ function useNav() {
   let path = usePathname()
   let t = { nav }
   let links = [
+    { href: '/arquitectura', label: nav.architecture },
     { href: `${site.url}/projects`, label: nav.projects },
-    { href: '/debug', label: nav.debug },
   ]
   return { path, t, links }
 }

@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // archivos no los detecta porque la ruta se arma dinámicamente.
   outputFileTracingIncludes: {
     "/api/**": ["./tenants/**/*", "./core/storage/schema.sql"],
+    "/arquitectura": ["./evals/reports/*"],
+    "/admin": ["./core/storage/schema.sql"],
+    "/privacidad": ["./tenants/**/*"],
   },
 };
 

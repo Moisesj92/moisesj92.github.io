@@ -15,6 +15,7 @@ export const nav = {
   projects: 'Proyectos',
   debug: 'Depuración',
   privacy: 'Privacidad',
+  architecture: 'Arquitectura',
   menu: 'Menú',
   navigation: 'Navegación',
   closeMenu: 'Cerrar menú',
