@@ -6,7 +6,6 @@ export const site = {
   linkedin: 'https://www.linkedin.com/in/ajdeveloper',
   voiceAgent: 'https://voice-agent-flax-six.vercel.app/',
   cvPdf: 'https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf',
-  ogImage: '/images/avatar2.jpg',
   /* Fotos de la portada (licencia Unsplash; se acredita al autor en el pie). */
   photoCredits: [
     { name: 'Caio Silva', url: 'https://unsplash.com/@caaaaaaaaaio' },
