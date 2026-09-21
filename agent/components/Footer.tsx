@@ -31,6 +31,7 @@ export function Footer() {
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
                 <NavLink href={site.url}>{nav.portfolio}</NavLink>
                 <NavLink href={`${site.url}/projects`}>{nav.projects}</NavLink>
+                <NavLink href="/arquitectura">{nav.architecture}</NavLink>
                 <NavLink href="/debug">{nav.debug}</NavLink>
                 <NavLink href="/privacidad">{nav.privacy}</NavLink>
               </div>
