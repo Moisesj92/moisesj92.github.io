@@ -1,76 +1,57 @@
-import type { ProjectCard as Card } from "@/core/types";
+import { Card } from '@/components/Card'
+import type { ProjectCard as CardData } from '@/core/types'
 
-/** Tarjeta que aparece mientras el agente habla del proyecto (tool mostrar_proyectos). */
-export function ProjectCard({ card, onDismiss }: { card: Card; onDismiss?: () => void }) {
-  const screenshot = card.url
-    ? `https://api.microlink.io/?url=${encodeURIComponent(card.url)}&screenshot=true&meta=false&embed=screenshot.url`
-    : null;
+/* Captura del sitio vía Microlink (igual que ProjectsPage del portafolio). */
+function screenshotUrl(href: string) {
+  return `https://api.microlink.io/?url=${encodeURIComponent(href)}&screenshot=true&meta=false&embed=screenshot.url`
+}
+
+function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
-    <article
-      style={{
-        border: "1px solid var(--border)",
-        borderLeft: "4px solid var(--accent)",
-        borderRadius: 8,
-        padding: 12,
-        display: "grid",
-        gridTemplateColumns: screenshot ? "120px 1fr" : "1fr",
-        gap: 12,
-        animation: "card-in 240ms ease-out",
-        position: "relative",
-      }}
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path d="m17.25 6.75-10.5 10.5M6.75 6.75l10.5 10.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/** Tarjeta de proyecto (tool mostrar_proyectos), con el mismo Card que usa el portafolio. */
+export function ProjectCard({ card, onDismiss }: { card: CardData; onDismiss?: () => void }) {
+  return (
+    <Card as="li">
+      {card.url && (
+        <div className="relative z-10 aspect-video w-full overflow-hidden rounded-xl bg-zinc-100 shadow-md ring-1 shadow-zinc-800/5 ring-zinc-900/5 dark:bg-zinc-800 dark:ring-white/10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={screenshotUrl(card.url)} alt="" loading="lazy" className="h-full w-full object-cover object-top" />
+        </div>
+      )}
+      {(card.company || card.period) && (
+        <Card.Eyebrow as="p" decorate className={card.url ? 'mt-6' : undefined}>
+          {[card.company, card.period].filter(Boolean).join(' · ')}
+        </Card.Eyebrow>
+      )}
+      <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-100">
+        {card.url ? (
+          <Card.Link href={card.url} target="_blank" rel="noopener noreferrer">
+            {card.title}
+          </Card.Link>
+        ) : (
+          card.title
+        )}
+      </h2>
+      <Card.Description>{card.summary}</Card.Description>
+      {card.technologies.length > 0 && (
+        <p className="relative z-10 mt-4 text-sm text-zinc-400 dark:text-zinc-500">{card.technologies.join(' · ')}</p>
+      )}
       {onDismiss && (
         <button
           type="button"
           onClick={onDismiss}
           aria-label={`Cerrar tarjeta de ${card.title}`}
-          style={dismissBtn}
+          className="absolute -top-2 -right-2 z-30 rounded-full bg-white/90 p-1 text-zinc-500 shadow-lg ring-1 shadow-zinc-800/5 ring-zinc-900/5 backdrop-blur-sm transition hover:text-zinc-800 dark:bg-zinc-800/90 dark:text-zinc-400 dark:ring-white/10 dark:hover:text-zinc-100"
         >
-          ×
+          <CloseIcon className="h-4 w-4" />
         </button>
       )}
-      {screenshot && (
-        // eslint-disable-next-line @next/next/no-img-element -- captura externa, sin optimizar
-        <img
-          src={screenshot}
-          alt={`Captura de ${card.title}`}
-          loading="lazy"
-          style={{ width: 120, height: 80, objectFit: "cover", borderRadius: 4, background: "var(--border)" }}
-        />
-      )}
-      <div style={{ minWidth: 0 }}>
-        <h3 style={{ margin: 0, fontSize: 15, paddingRight: 24 }}>
-          {card.url ? (
-            <a href={card.url} target="_blank" rel="noopener noreferrer">
-              {card.title}
-            </a>
-          ) : (
-            card.title
-          )}
-        </h3>
-        <p style={{ margin: "2px 0 6px", color: "var(--muted)", fontSize: 12 }}>
-          {[card.company, card.period].filter(Boolean).join(" · ")}
-        </p>
-        <p style={{ margin: 0, fontSize: 13 }}>{card.summary}</p>
-        {card.technologies.length > 0 && (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--muted)" }}>{card.technologies.join(" · ")}</p>
-        )}
-      </div>
-    </article>
-  );
+    </Card>
+  )
 }
-
-export const dismissBtn: React.CSSProperties = {
-  position: "absolute",
-  top: 6,
-  right: 6,
-  width: 24,
-  height: 24,
-  border: 0,
-  borderRadius: 12,
-  background: "transparent",
-  color: "var(--muted)",
-  fontSize: 18,
-  lineHeight: "24px",
-  cursor: "pointer",
-};
