@@ -32,5 +32,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm test
-      - run: pnpm exec tsc --noEmit
+      # build antes que tsc: next build genera next-env.d.ts (tipos de imágenes, rutas)
       - run: pnpm build
+      - run: pnpm exec tsc --noEmit
