@@ -84,6 +84,9 @@ Todo en `agent.yaml` → `limits` y en el guardián `core/guard/usage.ts`, sobre
 | Presupuesto diario del tenant | voz, texto | 503, el canal se cierra solo (kill-switch automático) |
 | Alerta al 50 % y 100 % | correo (`SMTP_URL` + `ALERT_EMAIL_TO`, Gmail con contraseña de aplicación) y/o `ALERT_WEBHOOK_URL` | sin variables, solo log |
 | Kill-switch manual | `AGENT_KILL_SWITCH=voice\|text\|all` | 503 inmediato |
+| Anti-bot (Turnstile invisible) antes de emitir tokens de voz | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | 403; sin las variables se omite |
+
+Cascada de degradación de la voz: Gemini Live → si no está (cuota, presupuesto, rate limit, kill-switch, anti-bot) la voz del navegador (Web Speech API, por turnos, con aviso) → si tampoco, texto. Nunca un error.
 
 Ventana móvil de 24 h. Un token de voz precalentado sin usar también cuenta (es el único punto del servidor).
 

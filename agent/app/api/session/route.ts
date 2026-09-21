@@ -1,6 +1,7 @@
 import { ApiError } from "@google/genai";
 import { NextResponse } from "next/server";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { verifyTurnstile } from "@/core/guard/turnstile";
 import { checkAndRecordUsage } from "@/core/guard/usage";
 import { getTenantRuntime } from "@/core/runtime";
 import { createSessionGrant } from "@/core/session/grant";
@@ -23,10 +24,16 @@ export async function POST(request: Request) {
 
   let requested: string | undefined;
   try {
-    const body = (await request.json().catch(() => ({}))) as { tenant?: unknown };
+    const body = (await request.json().catch(() => ({}))) as { tenant?: unknown; turnstileToken?: unknown };
     requested = typeof body.tenant === "string" ? body.tenant : undefined;
+    const ip = requestIp(request);
+    // Antes de gastar nada: ¿es un navegador real? (solo si Turnstile está configurado)
+    const human = await verifyTurnstile(typeof body.turnstileToken === "string" ? body.turnstileToken : undefined, ip);
+    if (!human.ok) {
+      return NextResponse.json({ error: human.error, reason: "turnstile" }, { status: 403 });
+    }
     const runtime = await getTenantRuntime(resolveTenantId(requested));
-    const usage = await checkAndRecordUsage(runtime.config, "voice_session", hashIp(requestIp(request)));
+    const usage = await checkAndRecordUsage(runtime.config, "voice_session", hashIp(ip));
     if (!usage.ok) {
       return NextResponse.json(
         { error: usage.message, reason: usage.reason },
