@@ -82,7 +82,7 @@ Todo en `agent.yaml` → `limits` y en el guardián `core/guard/usage.ts`, sobre
 |---|---|---|
 | Rate limit por IP y día | voz (tokens), texto (turnos), mensajes | 429; la UI ofrece seguir por texto |
 | Presupuesto diario del tenant | voz, texto | 503, el canal se cierra solo (kill-switch automático) |
-| Alerta al 50 % y 100 % | `ALERT_WEBHOOK_URL` (ntfy.sh, Slack o Discord) | notificación; sin la variable, solo log |
+| Alerta al 50 % y 100 % | correo (`SMTP_URL` + `ALERT_EMAIL_TO`, Gmail con contraseña de aplicación) y/o `ALERT_WEBHOOK_URL` | sin variables, solo log |
 | Kill-switch manual | `AGENT_KILL_SWITCH=voice\|text\|all` | 503 inmediato |
 
 Ventana móvil de 24 h. Un token de voz precalentado sin usar también cuenta (es el único punto del servidor).
