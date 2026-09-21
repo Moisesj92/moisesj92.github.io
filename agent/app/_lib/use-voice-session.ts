@@ -171,6 +171,7 @@ export function useVoiceSession(tenant?: string) {
         pushLog(`turnstile: ${err.message}; se intenta sin él`);
         return null;
       });
+      if (turnstileToken) pushLog("turnstile: verificación anti-bot superada (invisible)");
       res = await fetch("/api/session", {
         method: "POST",
         headers: { "content-type": "application/json" },

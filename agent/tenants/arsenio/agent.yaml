@@ -50,6 +50,7 @@ limits:
 
 links:
   cvPdf: https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf
+  contactEmail: arsenio.jimenez92@outlook.com
 
 brand:
   primaryColor: "#14b8a6"   # teal-500, el acento del template Spotlight

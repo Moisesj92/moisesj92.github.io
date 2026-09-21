@@ -14,6 +14,7 @@ export const nav = {
   portfolio: 'Portafolio',
   projects: 'Proyectos',
   debug: 'Depuración',
+  privacy: 'Privacidad',
   menu: 'Menú',
   navigation: 'Navegación',
   closeMenu: 'Cerrar menú',

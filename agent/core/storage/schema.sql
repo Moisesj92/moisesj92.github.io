@@ -26,3 +26,31 @@ CREATE TABLE IF NOT EXISTS usage_events (
 
 CREATE INDEX IF NOT EXISTS usage_events_tenant_kind_created_at ON usage_events (tenant, kind, created_at);
 CREATE INDEX IF NOT EXISTS usage_events_ip_hash_kind_created_at ON usage_events (ip_hash, kind, created_at);
+
+-- Turnos de conversación (texto y voz). Sin audio; correos y teléfonos ya
+-- redactados al escribir. Retención: 30 días (ver TurnStore.purge).
+CREATE TABLE IF NOT EXISTS turns (
+  id          bigserial PRIMARY KEY,
+  tenant      text NOT NULL,
+  session_id  text NOT NULL,
+  channel     text NOT NULL,          -- 'text' | 'voice'
+  user_text   text NOT NULL,
+  agent_text  text NOT NULL,
+  tools       jsonb NOT NULL DEFAULT '[]',
+  sources     text[] NOT NULL DEFAULT '{}',
+  model       text,
+  ms          integer,
+  ttfa_ms     integer,
+  refused     boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS turns_tenant_created_at ON turns (tenant, created_at DESC);
+CREATE INDEX IF NOT EXISTS turns_session_id ON turns (session_id);
+
+-- Ajustes operativos que deben aplicar al instante, sin redeploy (kill-switch).
+CREATE TABLE IF NOT EXISTS settings (
+  key         text PRIMARY KEY,
+  value       text NOT NULL,
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);

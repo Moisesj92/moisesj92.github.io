@@ -43,6 +43,8 @@ export const agentConfigSchema = z.object({
     .object({
       /** PDF del CV que descarga `descargar_cv` */
       cvPdf: z.string().url().optional(),
+      /** correo para ejercer derechos sobre los datos (aviso de privacidad) */
+      contactEmail: z.string().email().optional(),
     })
     .default({}),
   brand: z

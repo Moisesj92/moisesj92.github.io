@@ -18,6 +18,9 @@ class FakeStore implements MessageStore {
   async hasDuplicate(sessionId: string, email: string, body: string) {
     return this.saved.some((m) => m.sessionId === sessionId && m.email === email && m.body === body);
   }
+  async listRecent() {
+    return this.saved;
+  }
 }
 
 const config = agentConfigSchema.parse({

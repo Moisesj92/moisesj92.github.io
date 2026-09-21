@@ -41,8 +41,11 @@ export async function getTurnstileToken(): Promise<string | null> {
   if (!SITE_KEY) return null;
   const ts = await loadScript();
   if (!widgetId) {
+    // Fuera de la vista pero no display:none: Turnstile no ejecuta el desafío
+    // en contenedores ocultos (error 600010).
     const el = document.createElement("div");
-    el.style.display = "none";
+    el.setAttribute("aria-hidden", "true");
+    el.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;bottom:0;right:0;";
     document.body.appendChild(el);
     widgetId = ts.render(el, {
       sitekey: SITE_KEY,
