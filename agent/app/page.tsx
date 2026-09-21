@@ -1,10 +1,12 @@
 'use client'
 
 import clsx from 'clsx'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/Button'
 import { SimpleLayout } from '@/components/SimpleLayout'
+import { ConsentNotice, hasConsent, rememberConsent } from './_components/consent-notice'
 import { ProjectCard } from './_components/project-card'
 import { Visualizer } from './_components/visualizer'
 import { useTextSession } from './_lib/use-text-session'
@@ -23,6 +25,7 @@ const LABEL: Record<SessionState, string> = {
 interface TenantInfo {
   displayName: string
   links: { cvPdf?: string }
+  retentionDays?: number
 }
 
 type Mode = 'voice' | 'text'
@@ -68,7 +71,11 @@ export default function Home() {
       </div>
 
       <div className="mt-10">
-        {mode === 'voice' ? <VoicePanel voice={voice} onSwitchToText={() => switchTo('text')} /> : <TextPanel text={text} />}
+        {mode === 'voice' ? (
+          <VoicePanel voice={voice} retentionDays={tenant?.retentionDays ?? 30} onSwitchToText={() => switchTo('text')} />
+        ) : (
+          <TextPanel text={text} retentionDays={tenant?.retentionDays ?? 30} />
+        )}
       </div>
 
       <Effects
@@ -94,8 +101,29 @@ export default function Home() {
   )
 }
 
-function VoicePanel({ voice, onSwitchToText }: { voice: ReturnType<typeof useVoiceSession>; onSwitchToText: () => void }) {
+function VoicePanel({
+  voice,
+  retentionDays,
+  onSwitchToText,
+}: {
+  voice: ReturnType<typeof useVoiceSession>
+  retentionDays: number
+  onSwitchToText: () => void
+}) {
   const { state, error, failure, level, agentLevel, expiresAt, degraded, start, stop, prewarm } = voice
+  // Consentimiento explícito antes del micrófono: se pide una vez por navegador.
+  // Se lee localStorage al hacer click (no en el render ni en un efecto):
+  // así no hay desajuste entre servidor y cliente.
+  const [asking, setAsking] = useState(false)
+  const begin = () => {
+    if (hasConsent()) void start()
+    else setAsking(true)
+  }
+  const accept = () => {
+    rememberConsent()
+    setAsking(false)
+    void start()
+  }
   // El Button del template no reenvía ref; el observador mira el contenedor.
   const startBtn = useRef<HTMLDivElement>(null)
 
@@ -127,7 +155,7 @@ function VoicePanel({ voice, onSwitchToText }: { voice: ReturnType<typeof useVoi
         ) : (
           <div ref={startBtn} className="contents">
             <Button
-              onClick={start}
+              onClick={begin}
               onMouseEnter={() => prewarm('hover')}
               onFocus={() => prewarm('foco')}
               onTouchStart={() => prewarm('touchstart')}
@@ -150,6 +178,12 @@ function VoicePanel({ voice, onSwitchToText }: { voice: ReturnType<typeof useVoi
           {LABEL[state]}
         </span>
       </div>
+
+      {asking && !active && (
+        <div className="mt-4">
+          <ConsentNotice retentionDays={retentionDays} onAccept={accept} />
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">
@@ -183,7 +217,7 @@ function VoicePanel({ voice, onSwitchToText }: { voice: ReturnType<typeof useVoi
   )
 }
 
-function TextPanel({ text }: { text: ReturnType<typeof useTextSession> }) {
+function TextPanel({ text, retentionDays }: { text: ReturnType<typeof useTextSession>; retentionDays: number }) {
   const [input, setInput] = useState('')
   return (
     <section>
@@ -213,6 +247,12 @@ function TextPanel({ text }: { text: ReturnType<typeof useTextSession> }) {
           {text.error}
         </p>
       )}
+      <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+        La conversación se guarda {retentionDays} días, sin correos ni teléfonos, para mejorar el asistente.{' '}
+        <Link href="/privacidad" className="text-teal-500 hover:underline">
+          Privacidad
+        </Link>
+      </p>
     </section>
   )
 }

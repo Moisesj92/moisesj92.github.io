@@ -126,7 +126,7 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ## Fase 3 — Evals, guardrails y producción
 
-**Objetivo:** que sobreviva a internet y que puedas demostrar que funciona, no solo afirmarlo.
+**Objetivo:** que sobreviva a internet y que puedas demostrar que funciona, no solo afirmarlo. ✅ Cerrada 2026-09-20 (PRs #11, #12, #14, 3C).
 
 ### Evals (lo que convierte esto en ingeniería)
 
@@ -140,25 +140,25 @@ Conversas por texto 20 minutos, le haces las preguntas más incómodas que se te
 
 ### Contención de costo y abuso
 
-- [ ] Turnstile invisible antes de emitir cualquier sesión de voz
+- [x] Turnstile invisible antes de emitir cualquier sesión de voz
 - [x] Token de sesión de un solo uso, TTL de segundos
 - [x] Tope duro de sesión en el servidor (5 min) — vía `expireTime` del token (ADR-005); aviso al minuto 4 pendiente
-- [ ] Rate limit por IP y por día
-- [ ] Contador de presupuesto persistido, con kill-switch
-- [ ] Alerta a tu correo al 50% del presupuesto
-- [ ] **Cascada de degradación**: texto siempre disponible → voz con el proveedor en cuota → si se agota, `webspeech` con aviso honesto → nunca un error
+- [x] Rate limit por IP y por día
+- [x] Contador de presupuesto persistido, con kill-switch
+- [x] Alerta a tu correo al 50% del presupuesto
+- [x] **Cascada de degradación**: texto siempre disponible → voz con el proveedor en cuota → si se agota, `webspeech` con aviso honesto → nunca un error
 
 ### Observabilidad
 
-- [x] (a stdout; tokens y costo pendientes de persistir) Registro estructurado por turno: latencia, documentos recuperados, tools llamados, tokens, costo estimado
-- [ ] Transcripciones anonimizadas, sin audio, con correos y teléfonos redactados
-- [ ] Retención de 30 días y aviso de privacidad visible antes de activar el micrófono
-- [ ] Dashboard simple: sesiones, duración media, preguntas más frecuentes, tasa de rechazo
+- [x] (stdout + Postgres; tokens y costo pendientes) Registro estructurado por turno: latencia, documentos recuperados, tools llamados, tokens, costo estimado
+- [x] Transcripciones anonimizadas, sin audio, con correos y teléfonos redactados
+- [x] Retención de 30 días y aviso de privacidad visible antes de activar el micrófono
+- [x] Dashboard simple: sesiones, duración media, preguntas más frecuentes, tasa de rechazo
 
 ### Privacidad
 
-- [ ] Revisar los plazos vigentes de la ley de datos personales chilena antes de redactar el aviso — verifícalo, no lo asumas
-- [ ] Consentimiento explícito antes de grabar cualquier cosa
+- [x] (Ley 19.628 vigente; Ley 21.719 desde el 1 de diciembre de 2026 — verificado 2026-09-20) Revisar los plazos vigentes de la ley de datos personales chilena antes de redactar el aviso — verifícalo, no lo asumas
+- [x] Consentimiento explícito antes de grabar cualquier cosa
 
 ---
 

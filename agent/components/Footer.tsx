@@ -32,6 +32,7 @@ export function Footer() {
                 <NavLink href={site.url}>{nav.portfolio}</NavLink>
                 <NavLink href={`${site.url}/projects`}>{nav.projects}</NavLink>
                 <NavLink href="/debug">{nav.debug}</NavLink>
+                <NavLink href="/privacidad">{nav.privacy}</NavLink>
               </div>
               <p className="text-sm text-zinc-400 dark:text-zinc-500">
                 &copy; {new Date().getFullYear()} {site.name}. {nav.rights}

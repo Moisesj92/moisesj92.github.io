@@ -106,3 +106,9 @@ Vercel, importando este repo con **Root Directory = `agent`** y las variables `G
 8. Con `limits.sessionSeconds: 30` en `agent.yaml`, la sesión se cierra sola y la UI vuelve a Listo.
 9. Misma prueba en un iPhone real con la URL de Vercel.
 10. `grep -ri arsenio core providers lib app` no devuelve nada.
+
+## Observabilidad y privacidad
+
+- Cada turno (texto o voz) se registra en stdout y en la tabla `turns`: sin audio, con correos y teléfonos redactados, retención automática de 30 días.
+- **`/admin`** (contraseña `ADMIN_PASSWORD`): sesiones, turnos, tasa de rechazo, duración media, p50/p95 del primer audio, preguntas frecuentes, mensajes recibidos, últimos turnos y **kill-switch instantáneo** (en base de datos, sin redeploy).
+- **`/privacidad`**: aviso redactado para la Ley 19.628 y la Ley 21.719 (vigente desde el 1 de diciembre de 2026). Consentimiento explícito antes de activar el micrófono; el modo texto avisa de la retención.

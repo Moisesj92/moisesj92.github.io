@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
+import { RETENTION_DAYS } from "@/core/observability/turn-log";
 import { getTenantRuntime } from "@/core/runtime";
 
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
         languages: config.languages,
         brand: config.brand,
         links: config.links,
+        retentionDays: RETENTION_DAYS,
         greeting: config.voice.greeting,
       },
       { headers: { "Cache-Control": "public, max-age=60" } },
