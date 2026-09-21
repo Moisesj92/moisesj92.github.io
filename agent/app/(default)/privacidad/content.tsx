@@ -1,21 +1,18 @@
-import { resolveTenantId } from '@/core/config/load'
 import { RETENTION_DAYS } from '@/core/observability/turn-log'
-import { getTenantRuntime } from '@/core/runtime'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
-
-export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Privacidad' }
+import { loadTenant } from '../../_lib/tenant-server'
 
 /**
  * Aviso de privacidad. Redactado para la Ley 19.628 (vigente) y la Ley
  * 21.719 (en vigor desde el 1 de diciembre de 2026): finalidad, datos,
  * plazo, terceros y derechos. Los valores del tenant vienen de agent.yaml.
  */
-export default async function PrivacyPage() {
-  const { config } = await getTenantRuntime(resolveTenantId(null))
-  const name = config.displayName
-  const email = config.links.contactEmail
+export async function PrivacyContent({ tenant: tenantId }: { tenant?: string }) {
+  const tenant = await loadTenant(tenantId)
+  const name = tenant.displayName
+  const email = tenant.links.contactEmail
+  const responsible = tenant.legal.responsible ?? `${name}, como responsable del tratamiento.`
 
   return (
     <SimpleLayout
@@ -25,8 +22,7 @@ export default async function PrivacyPage() {
       <div className="space-y-16 text-base text-zinc-600 dark:text-zinc-400">
         <Section title="Responsable">
           <p>
-            {name}, persona natural, como responsable del tratamiento. Este asistente es un proyecto personal para que
-            visitantes (normalmente reclutadores) conozcan su experiencia profesional.
+            {responsible}
             {email && (
               <>
                 {' '}

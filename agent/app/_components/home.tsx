@@ -6,12 +6,13 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/Button'
 import { SimpleLayout } from '@/components/SimpleLayout'
-import { ConsentNotice, hasConsent, rememberConsent } from './_components/consent-notice'
-import { ProjectCard } from './_components/project-card'
-import { Visualizer } from './_components/visualizer'
-import { useTextSession } from './_lib/use-text-session'
-import { useVoiceSession, type SessionState, type TranscriptLine } from './_lib/use-voice-session'
-import type { DownloadOffer, ShownCard } from './_lib/use-ui-effects'
+import type { TenantPublic } from '@/core/tenant/public'
+import { ConsentNotice, hasConsent, rememberConsent } from './consent-notice'
+import { ProjectCard } from './project-card'
+import { Visualizer } from './visualizer'
+import { useTextSession } from '../_lib/use-text-session'
+import { useVoiceSession, type SessionState, type TranscriptLine } from '../_lib/use-voice-session'
+import type { DownloadOffer, ShownCard } from '../_lib/use-ui-effects'
 
 const LABEL: Record<SessionState, string> = {
   idle: 'Listo',
@@ -22,26 +23,21 @@ const LABEL: Record<SessionState, string> = {
   error: 'Error',
 }
 
-interface TenantInfo {
-  displayName: string
-  links: { cvPdf?: string }
-  retentionDays?: number
-}
-
 type Mode = 'voice' | 'text'
 
-export default function Home() {
-  const [tenant, setTenant] = useState<TenantInfo | null>(null)
+/** La conversación. `tenant` es el id cuando la ruta es /t/<id>; sin él, el tenant por defecto. */
+export function Home({ tenant: tenantId }: { tenant?: string }) {
+  const [tenant, setTenant] = useState<TenantPublic | null>(null)
   const [mode, setMode] = useState<Mode>('voice')
-  const voice = useVoiceSession()
-  const text = useTextSession()
+  const voice = useVoiceSession(tenantId)
+  const text = useTextSession(tenantId)
 
   useEffect(() => {
-    fetch('/api/tenant')
+    fetch(`/api/tenant${tenantId ? `?tenant=${encodeURIComponent(tenantId)}` : ''}`)
       .then((r) => (r.ok ? r.json() : null))
       .then(setTenant)
       .catch(() => {})
-  }, [])
+  }, [tenantId])
 
   const switchTo = (m: Mode) => {
     if (m === mode) return
@@ -54,7 +50,7 @@ export default function Home() {
   return (
     <SimpleLayout
       title={tenant ? `Habla con el asistente de ${tenant.displayName}` : 'Asistente de voz'}
-      intro="Pregúntale por su experiencia, sus proyectos o déjale un mensaje. Responde solo con información verificada y te dice de dónde la saca."
+      intro={tenant?.intro ?? ''}
     >
       <div className="flex flex-wrap items-center gap-3">
         <Button variant={mode === 'voice' ? 'primary' : 'secondary'} onClick={() => switchTo('voice')} aria-pressed={mode === 'voice'}>
@@ -72,9 +68,14 @@ export default function Home() {
 
       <div className="mt-10">
         {mode === 'voice' ? (
-          <VoicePanel voice={voice} retentionDays={tenant?.retentionDays ?? 30} onSwitchToText={() => switchTo('text')} />
+          <VoicePanel
+            voice={voice}
+            retentionDays={tenant?.retentionDays ?? 30}
+            privacyHref={`${tenant?.basePath ?? ''}/privacidad`}
+            onSwitchToText={() => switchTo('text')}
+          />
         ) : (
-          <TextPanel text={text} retentionDays={tenant?.retentionDays ?? 30} />
+          <TextPanel text={text} retentionDays={tenant?.retentionDays ?? 30} privacyHref={`${tenant?.basePath ?? ''}/privacidad`} />
         )}
       </div>
 
@@ -104,10 +105,12 @@ export default function Home() {
 function VoicePanel({
   voice,
   retentionDays,
+  privacyHref,
   onSwitchToText,
 }: {
   voice: ReturnType<typeof useVoiceSession>
   retentionDays: number
+  privacyHref: string
   onSwitchToText: () => void
 }) {
   const { state, error, failure, level, agentLevel, expiresAt, degraded, start, stop, prewarm } = voice
@@ -181,7 +184,7 @@ function VoicePanel({
 
       {asking && !active && (
         <div className="mt-4">
-          <ConsentNotice retentionDays={retentionDays} onAccept={accept} />
+          <ConsentNotice retentionDays={retentionDays} privacyHref={privacyHref} onAccept={accept} />
         </div>
       )}
 
@@ -217,7 +220,15 @@ function VoicePanel({
   )
 }
 
-function TextPanel({ text, retentionDays }: { text: ReturnType<typeof useTextSession>; retentionDays: number }) {
+function TextPanel({
+  text,
+  retentionDays,
+  privacyHref,
+}: {
+  text: ReturnType<typeof useTextSession>
+  retentionDays: number
+  privacyHref: string
+}) {
   const [input, setInput] = useState('')
   return (
     <section>
@@ -249,7 +260,7 @@ function TextPanel({ text, retentionDays }: { text: ReturnType<typeof useTextSes
       )}
       <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
         La conversación se guarda {retentionDays} días, sin correos ni teléfonos, para mejorar el asistente.{' '}
-        <Link href="/privacidad" className="text-teal-500 hover:underline">
+        <Link href={privacyHref} className="text-teal-500 hover:underline">
           Privacidad
         </Link>
       </p>

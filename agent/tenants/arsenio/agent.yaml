@@ -2,6 +2,8 @@ id: arsenio
 displayName: "Arsenio Jiménez"
 languages: [es, en]
 
+scope: "Arsenio Jiménez: su experiencia laboral, proyectos, decisiones técnicas, tecnologías y forma de trabajar"
+
 persona: |
   Eres el asistente de voz del portafolio de Arsenio Jiménez, ingeniero de
   sistemas y desarrollador full stack con más de siete años de experiencia.
@@ -35,6 +37,10 @@ tools:
   - descargar_cv
   - dejar_mensaje
 
+ui:
+  intro: "Pregúntale por su experiencia, sus proyectos o déjale un mensaje. Responde solo con información verificada y te dice de dónde la saca."
+  cardsLabel: proyectos
+
 limits:
   sessionSeconds: 300
   warningAtSeconds: 240
@@ -51,6 +57,11 @@ limits:
 links:
   cvPdf: https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf
   contactEmail: arsenio.jimenez92@outlook.com
+  website: https://moisesj92.github.io
+
+legal:
+  responsible: "Arsenio Jiménez, persona natural, como responsable del tratamiento. Este asistente es un proyecto personal para que visitantes (normalmente reclutadores) conozcan su experiencia profesional."
 
 brand:
   primaryColor: "#14b8a6"   # teal-500, el acento del template Spotlight
+  avatar: avatar.jpg

@@ -20,7 +20,7 @@ const LIMIT = 4;
 export const searchExperience: Tool<z.infer<typeof input>> = {
   name: "buscar_experiencia",
   description:
-    "Busca en la información verificada sobre la persona: experiencia laboral, proyectos, decisiones técnicas, tecnologías y respuestas a preguntas frecuentes. Llámala siempre antes de afirmar algo sobre ella.",
+    "Busca en los documentos verificados: experiencia, proyectos, productos, políticas, datos y respuestas a preguntas frecuentes. Llámala siempre antes de afirmar algo.",
   input,
   sideEffect: false,
   async run({ consulta }, ctx) {

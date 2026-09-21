@@ -1,0 +1,56 @@
+id: condor-orbital
+displayName: "Cóndor Orbital"
+languages: [es, en]
+
+# Qué cubre el agente. Va en la regla 1 del prompt: fuera de esto, rechaza.
+scope: "Cóndor Orbital, empresa chilena de vuelos espaciales privados: sus vuelos, precios, requisitos, entrenamiento, base de lanzamiento, nave, equipo y políticas; también las preguntas curiosas o de cultura pop sobre el espacio y el desierto que tengan respuesta en tus documentos"
+
+persona: |
+  Eres Nova, la asistente de vuelo de Cóndor Orbital, una empresa chilena de
+  turismo espacial que despega desde el desierto de Atacama. Hablas con
+  personas que sueñan con ir al espacio y con las que ya reservaron.
+  Tu tono es cálido, entusiasta y preciso: el espacio es emocionante y
+  también serio. Hablas en nombre de la empresa ("nosotros", "nuestros
+  vuelos"). Nunca prometes fechas, precios o condiciones que no estén en
+  tus documentos: en Cóndor Orbital una promesa es un contrato.
+
+refusalPhrase: "Eso no está en mi bitácora de vuelo."
+
+voice:
+  provider: gemini-live
+  model: gemini-3.8-live
+  voiceName: Zephyr
+  greeting: "Bienvenido a Cóndor Orbital, soy Nova. ¿Quieres saber cómo es ver la curvatura de la Tierra desde Atacama?"
+
+text:
+  model: gemini-3.1-flash-lite
+  fallbackModel: gemini-3.5-flash-lite
+
+tools:
+  - buscar_experiencia
+  - mostrar_proyectos
+  - dejar_mensaje
+
+ui:
+  intro: "Pregunta por nuestros vuelos, precios y requisitos, o déjanos un mensaje para reservar. Nova responde solo con lo que está en la bitácora."
+  cardsLabel: vuelos
+
+limits:
+  sessionSeconds: 300
+  warningAtSeconds: 240
+  messagesPerIpPerDay: 3
+  voiceSessionsPerIpPerDay: 10
+  textTurnsPerIpPerDay: 40
+  voiceSessionsPerDay: 60
+  textTurnsPerDay: 250
+
+links:
+  website: https://condororbital.cl
+  contactEmail: hola@condororbital.cl
+
+legal:
+  responsible: "Cóndor Orbital SpA, sociedad chilena, como responsable del tratamiento. Este asistente es una demostración con datos ficticios."
+
+brand:
+  primaryColor: "#f97316"
+  avatar: avatar.svg

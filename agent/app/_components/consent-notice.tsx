@@ -8,7 +8,15 @@ import { Button } from '@/components/Button'
  * Consentimiento explícito antes de activar el micrófono. Se muestra una
  * vez por navegador; la aceptación se recuerda en localStorage.
  */
-export function ConsentNotice({ retentionDays, onAccept }: { retentionDays: number; onAccept: () => void }) {
+export function ConsentNotice({
+  retentionDays,
+  privacyHref,
+  onAccept,
+}: {
+  retentionDays: number
+  privacyHref: string
+  onAccept: () => void
+}) {
   return (
     <div role="dialog" aria-labelledby="consent-title" className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
       <h2 id="consent-title" className="text-base font-semibold text-zinc-800 dark:text-zinc-100">
@@ -18,7 +26,7 @@ export function ConsentNotice({ retentionDays, onAccept }: { retentionDays: numb
         Tu voz se transmite en tiempo real a Google Gemini para transcribirla y responder; el audio no se guarda. La
         transcripción de la conversación (sin correos ni teléfonos) se conserva {retentionDays} días para mejorar el
         asistente y luego se borra. Detalles en{' '}
-        <Link href="/privacidad" className="text-teal-500 hover:underline">
+        <Link href={privacyHref} className="text-teal-500 hover:underline">
           privacidad
         </Link>
         .

@@ -173,8 +173,8 @@ No es una fase aparte: son cuatro reglas que sigues desde el commit uno para que
 
 ### La prueba de fuego
 
-- [ ] Desplegar un segundo tenant real. Tu operación de retiro de residuos sirve: un agente que responda consultas de clientes sobre retiros, mismo motor, otro corpus
-- [ ] Cronometrarlo. Si te toma más de una tarde, la abstracción está mal y vale la pena arreglarla ahora
+- [x] (ficticio: `condor-orbital`, ADR-008) Desplegar un segundo tenant real. Tu operación de retiro de residuos sirve: un agente que responda consultas de clientes sobre retiros, mismo motor, otro corpus
+- [x] (~12 min de motor + prueba; tres deudas encontradas y corregidas) Cronometrarlo. Si te toma más de una tarde, la abstracción está mal y vale la pena arreglarla ahora
 
 Ese segundo tenant demuestra en treinta segundos lo que tres párrafos de README no logran.
 
@@ -223,7 +223,7 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 ### Decisiones que tomas sobre la marcha
 
 - [ ] Semana 3: ¿pagas el proveedor premium o te quedas en free tier? Decídelo con el proyecto ya funcionando y el costo por sesión medido
-- [ ] ¿El segundo tenant es Bendito Residuo o un tenant de demo ficticio? El real es más convincente pero te obliga a pensar en datos de clientes
+- [x] (ficticio) ¿El segundo tenant es Bendito Residuo o un tenant de demo ficticio? El real es más convincente pero te obliga a pensar en datos de clientes
 - [x] ¿Repo público desde el día uno o al terminar? Público desde el día uno genera historial de commits creíble, pero expone los tropiezos
 
 ---
@@ -233,6 +233,7 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 Cosas que salieron por el camino y no estaban en el plan. Se cierran cuando toque, no antes.
 
 - [ ] Key de Gemini para CI en un proyecto de Google distinto (cuota propia) y restaurar el trigger `pull_request` en `agent-evals.yml`. Hoy las evals comparten cuota con el chat de texto de producción (500/día por modelo lite) y corren solo a mano.
+- [ ] Evals y `live-check` parametrizados por tenant (`--tenant`); hoy fijados al de `evals/config.yaml`.
 - [ ] Juez solo en los casos que lo necesitan (rechazos y estilo); reglas deterministas para el resto → ~140 llamadas por corrida en vez de ~230.
 - [ ] Medir la cuota real de `gemini-3.8-live` (voz) en free tier.
 - [ ] Android real.

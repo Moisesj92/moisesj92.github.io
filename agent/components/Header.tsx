@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -14,8 +14,12 @@ import {
 import clsx from 'clsx'
 
 import { Container } from '@/components/Container'
-import { nav, site } from '@/lib/site'
+import type { TenantPublic } from '@/core/tenant/public'
+import { nav } from '@/lib/site'
 import avatarImage from '@/images/avatar.jpg'
+
+/** El tenant lo pone el layout de servidor; aquí se reparte a avatar, enlaces y textos. */
+const TenantContext = createContext<TenantPublic | null>(null)
 
 function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -78,15 +82,16 @@ function MoonIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-/** Sin i18n de interfaz: textos fijos y enlaces al portafolio y a /debug. */
+/** Sin i18n de interfaz: textos fijos; los enlaces dependen del tenant. */
 function useNav() {
   let path = usePathname()
+  let tenant = useContext(TenantContext)
   let t = { nav }
   let links = [
     { href: '/arquitectura', label: nav.architecture },
-    { href: `${site.url}/projects`, label: nav.projects },
+    ...(tenant?.links.website ? [{ href: tenant.links.website, label: nav.website }] : []),
   ]
-  return { path, t, links }
+  return { path, t, links, tenant }
 }
 
 function MobileNavItem({
@@ -243,31 +248,38 @@ function Avatar({
 }: Omit<React.ComponentPropsWithoutRef<typeof Link>, 'href'> & {
   large?: boolean
 }) {
-  let { t } = useNav()
+  let { t, tenant } = useNav()
+  let imgClass = clsx('rounded-full bg-zinc-100 object-cover dark:bg-zinc-800', large ? 'h-16 w-16' : 'h-9 w-9')
 
   return (
     <Link
-      href={site.url}
-      aria-label={t.nav.portfolio}
+      href={tenant?.links.website ?? tenant?.basePath ?? '/'}
+      aria-label={tenant?.displayName ?? t.nav.home}
       className={clsx(className, 'pointer-events-auto')}
       {...props}
     >
-      <Image
-        src={avatarImage}
-        alt=""
-        sizes={large ? '4rem' : '2.25rem'}
-        className={clsx(
-          'rounded-full bg-zinc-100 object-cover dark:bg-zinc-800',
-          large ? 'h-16 w-16' : 'h-9 w-9',
-        )}
-        priority
-      />
+      {tenant?.brand.avatarUrl ? (
+        // El avatar del tenant lo sirve la API desde tenants/<id>/; no hay import estático posible.
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={tenant.brand.avatarUrl} alt="" width={large ? 64 : 36} height={large ? 64 : 36} className={imgClass} />
+      ) : (
+        <Image src={avatarImage} alt="" sizes={large ? '4rem' : '2.25rem'} className={imgClass} priority />
+      )}
     </Link>
   )
 }
 
-export function Header() {
-  let isHomePage = useNav().path === '/'
+export function Header({ tenant }: { tenant: TenantPublic }) {
+  return (
+    <TenantContext.Provider value={tenant}>
+      <HeaderInner />
+    </TenantContext.Provider>
+  )
+}
+
+function HeaderInner() {
+  let { path, tenant } = useNav()
+  let isHomePage = path === (tenant?.basePath || '/')
 
   let headerRef = useRef<React.ElementRef<'div'>>(null)
   let avatarRef = useRef<React.ElementRef<'div'>>(null)
