@@ -88,16 +88,14 @@ export function Home({ tenant: tenantId }: { tenant?: string }) {
 
       <Transcript lines={session.transcript} />
 
-      {mode === 'voice' && (
-        <details className="mt-10">
-          <summary className="cursor-pointer text-sm text-zinc-400 dark:text-zinc-500">
-            Eventos técnicos{voice.ttfaMs !== null ? ` · primer audio en ${voice.ttfaMs} ms` : ''}
-          </summary>
-          <pre className="mt-3 max-h-72 overflow-auto rounded-2xl border border-zinc-100 p-4 text-xs whitespace-pre-wrap text-zinc-600 dark:border-zinc-700/40 dark:text-zinc-400">
-            {voice.log.length === 0 ? '—' : voice.log.map((l) => `${new Date(l.t).toLocaleTimeString()}  ${l.msg}`).join('\n')}
-          </pre>
-        </details>
-      )}
+      <details className="mt-10">
+        <summary className="cursor-pointer text-sm text-zinc-400 dark:text-zinc-500">
+          Eventos técnicos{mode === 'voice' && voice.ttfaMs !== null ? ` · primer audio en ${voice.ttfaMs} ms` : ''}
+        </summary>
+        <pre className="mt-3 max-h-72 overflow-auto rounded-2xl border border-zinc-100 p-4 text-xs whitespace-pre-wrap text-zinc-600 dark:border-zinc-700/40 dark:text-zinc-400">
+          {session.log.length === 0 ? '—' : session.log.map((l) => `${new Date(l.t).toLocaleTimeString()}  ${l.msg}`).join('\n')}
+        </pre>
+      </details>
     </SimpleLayout>
   )
 }
