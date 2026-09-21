@@ -60,6 +60,7 @@ export const es = {
     },
     work: 'Experiencia',
     workCta: 'Ver perfil en LinkedIn',
+    cvCta: 'Descargar CV (PDF)',
     present: 'Actualidad',
     until: 'hasta',
   },

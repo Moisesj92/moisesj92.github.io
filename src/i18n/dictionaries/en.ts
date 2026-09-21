@@ -62,6 +62,7 @@ export const en: typeof es = {
     },
     work: 'Work',
     workCta: 'View profile on LinkedIn',
+    cvCta: 'Download CV (PDF)',
     present: 'Present',
     until: 'until',
   },
