@@ -5,7 +5,7 @@ type: situation
 company: Comercial Bendito Residuo SpA
 period: 05/2026 – 09/2026
 role: Encargado de Trazabilidad y Valorización
-tags: [trazabilidad, análisis de datos, operaciones, residuos, logística]
+tags: [trazabilidad, análisis de datos, operaciones, residuos, logística, planta, bendito residuo, drivin, pesaje]
 technologies: [Drivin]
 ---
 En Comercial Bendito Residuo SpA, Arsenio construyó el reporte de trazabilidad de la planta.

@@ -1,0 +1,177 @@
+# Los "no": preguntas predecibles sin respuesta obvia en el CV. Deben
+# responderse con lo que Arsenio redactó, sin rechazar. Umbral: 90 %.
+group: faq
+cases:
+  - id: faq-buscando
+    question: ¿Está buscando trabajo?
+    expect:
+      refuse: false
+      contains: ["sí"]
+      judge: Dice que sí, activamente, para un rol de desarrollo, y que puede empezar de inmediato.
+
+  - id: faq-cuando-empieza
+    question: ¿Cuándo podría empezar?
+    expect:
+      refuse: false
+      contains: ["inmediat"]
+
+  - id: faq-remoto
+    question: ¿Trabaja remoto o presencial?
+    expect:
+      refuse: false
+      contains: ["remot"]
+      sources_any: [faq-reubicacion-modalidad]
+      judge: Prefiere remoto pero acepta híbrido o presencial en Santiago.
+
+  - id: faq-extranjero
+    question: ¿Trabajaría para una empresa de Estados Unidos?
+    expect:
+      refuse: false
+      sources_any: [faq-reubicacion-modalidad]
+      judge: Dice que sí, remoto, en horario de Chile; puede mencionar inglés B2.
+
+  - id: faq-reubicacion
+    question: ¿Se mudaría a otro país por un trabajo?
+    expect:
+      refuse: false
+      sources_any: [faq-reubicacion-modalidad]
+      judge: Dice que consideraría reubicarse por el rol correcto.
+
+  - id: faq-renta-redirige
+    question: ¿Cuál es su expectativa de renta?
+    expect:
+      contains: ["correo|LinkedIn|outlook"]
+      not_contains: ["$", "millones"]
+      sources_any: [faq-expectativa-renta]
+      judge: No da cifra; explica que prefiere conversarlo directamente y ofrece contactarlo por correo o LinkedIn.
+
+  - id: faq-planta-por-que
+    question: ¿Por qué un desarrollador se fue a dirigir una planta de residuos?
+    expect:
+      refuse: false
+      sources_any: [faq-planta-residuos-y-desarrollo]
+      judge: Explica que fue un cambio de industria deliberado para demostrar que puede construir software fuera del sector tecnológico, y/o que no dejó de programar (construyó herramientas allí). Mencionar al dueño conocido es opcional.
+
+  - id: faq-planta-dejo
+    question: ¿Sigue en la planta de residuos?
+    expect:
+      refuse: false
+      contains: ["septiembre"]
+      judge: Dice que no, que la dejó en septiembre de 2026 para volver al sector tecnológico.
+
+  - id: faq-dejo-comunidad-feliz
+    question: ¿Por qué dejó Comunidad Feliz?
+    expect:
+      refuse: false
+      sources_any: [faq-salida-comunidad-feliz]
+      not_contains: ["renunció", "lo despidieron por bajo rendimiento"]
+      judge: Cuenta que la empresa terminó su contrato y da al menos un motivo del documento (proyecto descartado, paternidad o métrica de story points), en tono sereno, sin atacar a la empresa. No hace falta que mencione todos.
+
+  - id: faq-dejo-alseco
+    question: ¿Por qué dejó Alseco?
+    expect:
+      refuse: false
+      contains: ["cerró"]
+      sources_any: [faq-salida-alseco]
+      judge: Dice que la empresa cerró (tras pivotes o por falta de clientes/rentabilidad). Mencionar lo aprendido es opcional.
+
+  - id: faq-dejo-docustore
+    question: ¿Por qué se fue de Docustore?
+    expect:
+      refuse: false
+      contains: ["startup"]
+      sources_any: [faq-salida-docustore]
+      judge: Dice que se fue a una startup (Alseco) por la oportunidad. Mencionar que no se arrepiente es opcional.
+
+  - id: faq-dejo-centribal
+    question: ¿Por qué estuvo solo cinco meses en Centribal?
+    expect:
+      refuse: false
+      sources_any: [faq-salida-centribal]
+      not_contains: ["horas extras"]
+      judge: Explica que entró a un mes del deadline, el equipo entregó, y después las condiciones no reflejaban el esfuerzo, así que aceptó otra oferta. Sin detalles de horas extras.
+
+  - id: faq-dejo-celcom
+    question: ¿Por qué dejó Celcom?
+    expect:
+      refuse: false
+      contains: ["honorarios"]
+      sources_any: [faq-salida-celcom]
+      judge: Cuenta que trabajó un año a honorarios pidiendo contrato y que cuando se lo ofrecieron ya tenía otras ofertas.
+
+  - id: faq-dejo-position
+    question: ¿Por qué se fue de Position GPS?
+    expect:
+      refuse: false
+      sources_any: [faq-salida-position-gps]
+      judge: Dice que buscó una mejora profesional y salarial y Celcom se la ofreció.
+
+  - id: faq-kubernetes
+    question: ¿Tiene experiencia con Kubernetes?
+    expect:
+      refuse: false
+      contains: ["Docker"]
+      not_contains: ["sí, tiene experiencia con Kubernetes"]
+      sources_any: [faq-tecnologias-no-usadas]
+      judge: Dice honestamente que no lo ha usado en producción y menciona lo que sí usa (Docker, AWS…).
+
+  - id: faq-python
+    question: "¿Sabe Python?"
+    expect:
+      refuse: false
+      sources_any: [faq-tecnologias-no-usadas]
+      judge: Dice que no lo ha usado en producción; puede mencionar sus lenguajes reales (JavaScript, TypeScript, Ruby, PHP).
+
+  - id: faq-mongodb
+    question: ¿Ha trabajado con MongoDB?
+    expect:
+      refuse: false
+      contains: ["MERN"]
+      sources_any: [faq-tecnologias-no-usadas]
+      judge: Dice que solo en un proyecto personal con el stack MERN, no en un trabajo; su experiencia real es PostgreSQL, Redis y Firebase.
+
+  - id: faq-anos-react
+    question: ¿Cuántos años de React tiene?
+    expect:
+      refuse: false
+      contains: ["dos años y medio"]
+      sources_any: [faq-anos-por-tecnologia]
+      judge: Dice aproximadamente dos años y medio, y de dónde salen (Alseco e independientes).
+
+  - id: faq-anos-rails
+    question: ¿Cuánta experiencia tiene con Ruby on Rails?
+    expect:
+      refuse: false
+      contains: ["5 años|cinco años"]
+      sources_any: [faq-anos-por-tecnologia]
+
+  - id: faq-fortaleza
+    question: ¿Cuál es su mayor fortaleza?
+    expect:
+      refuse: false
+      contains: ["adaptab"]
+      sources_any: [faq-fortalezas-debilidades]
+      judge: "Habla de adaptabilidad: entender el negocio y usar la tecnología como herramienta. Un ejemplo concreto es opcional."
+
+  - id: faq-debilidad
+    question: ¿Cuál es su mayor debilidad?
+    expect:
+      refuse: false
+      contains: ["sobrepens"]
+      sources_any: [faq-fortalezas-debilidades]
+      judge: Dice que tiende a sobrepensar las soluciones y qué hace al respecto (definir 2–3 opciones y ejecutar).
+
+  - id: faq-gente-a-cargo
+    question: ¿Ha liderado equipos?
+    expect:
+      refuse: false
+      contains: ["nueve"]
+      sources_any: [faq-fortalezas-debilidades]
+      judge: Dice que como desarrollador no ha liderado, pero que dirigió un equipo de nueve personas en la planta. Mencionar el interés en tech lead es opcional.
+
+  - id: faq-scrum
+    question: ¿Conoce metodologías ágiles?
+    expect:
+      refuse: false
+      contains: ["Scrum"]
+      judge: Menciona la certificación Scrum Master.

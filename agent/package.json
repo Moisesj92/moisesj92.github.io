@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
-    "live-check": "tsx scripts/live-check.mts"
+    "live-check": "tsx scripts/live-check.mts",
+    "evals": "tsx evals/run.ts"
   },
   "dependencies": {
     "@google/genai": "^2.23.0",

@@ -108,3 +108,17 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 - Verifica desde el día uno el comportamiento de dominio cerrado: con corpus vacío, el modelo debe usar la frase de rechazo y no inventar. Si inventa con corpus vacío, va a inventar con corpus lleno.
 
 **Consecuencias:** Fase 1 reemplaza `NullRetriever` por `BM25Retriever` detrás de la misma interfaz. Nada más cambia.
+
+---
+
+## ADR-007 — Modelos "lite" como principales en texto, por cuota del free tier
+
+**Fecha:** 2026-09-20 · **Estado:** aceptada
+
+**Contexto:** el plan desarrolla todo contra Gemini Flash en free tier. Al montar la suite de evals se comprobó que `gemini-3.8-flash` tiene **20 peticiones por día** en free tier (`quotaValue: 20`); se agotó en el primer run y todas las respuestas del día salieron del modelo de respaldo.
+
+**Decisión:** en `agent.yaml`, `text.model = gemini-3.5-flash-lite` y `text.fallbackModel = gemini-3.1-flash-lite`. El juez de las evals es `gemini-3.1-flash-lite` (distinto al que responde, cuota separada). La suite corre con concurrencia 1 y ≥ 4 s entre llamadas (~15 por minuto, el límite por minuto del free tier).
+
+**Por qué:** con 20/día, el modelo grande como principal solo añade una llamada fallida y ~1 s a cada turno antes de caer al respaldo. La calidad de los lite en este dominio (respuestas de 2–4 frases sobre un corpus pequeño, con tool calling) se validó en la sesión de 20 minutos y en las evals: no hubo una respuesta que el grande hiciera mejor.
+
+**Consecuencias:** los lite tienen 500 peticiones/día por modelo en free tier; una suite completa de evals son ~230 llamadas (respuestas con tool loop + juez), así que caben **dos corridas completas al día** entre local y CI. El runner corta con reporte parcial cuando se agota. La voz (`gemini-3.8-live`) no cambia; su cuota es otra y hay que medirla. Este dato pesa en la decisión de la semana 3 (¿pagar?): en free tier el cuello es el modelo grande, no los lite. El presupuesto y el kill-switch de Fase 3 deben contar peticiones por modelo, no solo por sesión.

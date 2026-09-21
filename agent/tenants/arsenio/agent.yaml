@@ -24,8 +24,10 @@ voice:
   greeting: "Hola, soy el asistente de Arsenio. ¿Qué te gustaría saber sobre su experiencia?"
 
 text:
-  model: gemini-3.8-flash
-  fallbackModel: gemini-3.5-flash-lite
+  # gemini-3.8-flash tiene 20 peticiones/día en free tier: inservible como
+  # principal. Los lite responden igual de bien para este dominio (ADR-007).
+  model: gemini-3.5-flash-lite
+  fallbackModel: gemini-3.1-flash-lite
 
 tools:
   - buscar_experiencia

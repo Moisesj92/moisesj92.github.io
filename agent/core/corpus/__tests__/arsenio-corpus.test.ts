@@ -36,6 +36,7 @@ describe("corpus de arsenio", () => {
     expect((await top("google maps"))[0]).toBe("position-gps-mapas-plataformas");
     expect((await top("kubernetes"))[0]).toBe("faq-tecnologias-no-usadas");
     expect((await top("cuánto espera ganar"))[0]).toBe("faq-expectativa-renta");
-    expect((await top("por qué dejó Comunidad Feliz"))[0]).toBe("faq-por-que-dejo-cada-trabajo");
+    expect((await top("por qué dejó Comunidad Feliz"))[0]).toBe("faq-salida-comunidad-feliz");
+    expect((await top("por qué se fue de Position GPS"))[0]).toBe("faq-salida-position-gps");
   });
 });
