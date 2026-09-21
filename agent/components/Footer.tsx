@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 import { ContainerInner, ContainerOuter } from '@/components/Container'
-import { nav, site } from '@/lib/site'
+import type { TenantPublic } from '@/core/tenant/public'
+import { nav } from '@/lib/site'
 
 function NavLink({
   href,
@@ -20,7 +21,7 @@ function NavLink({
   )
 }
 
-export function Footer() {
+export function Footer({ tenant }: { tenant: TenantPublic }) {
 
   return (
     <footer className="mt-32 flex-none">
@@ -29,14 +30,13 @@ export function Footer() {
           <ContainerInner>
             <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                <NavLink href={site.url}>{nav.portfolio}</NavLink>
-                <NavLink href={`${site.url}/projects`}>{nav.projects}</NavLink>
+                {tenant.links.website && <NavLink href={tenant.links.website}>{nav.website}</NavLink>}
                 <NavLink href="/arquitectura">{nav.architecture}</NavLink>
                 <NavLink href="/debug">{nav.debug}</NavLink>
-                <NavLink href="/privacidad">{nav.privacy}</NavLink>
+                <NavLink href={`${tenant.basePath}/privacidad`}>{nav.privacy}</NavLink>
               </div>
               <p className="text-sm text-zinc-400 dark:text-zinc-500">
-                &copy; {new Date().getFullYear()} {site.name}. {nav.rights}
+                &copy; {new Date().getFullYear()} {tenant.displayName}. {nav.rights}
               </p>
             </div>
           </ContainerInner>

@@ -7,9 +7,11 @@ const config = agentConfigSchema.parse({
   displayName: "Persona",
   languages: ["es"],
   persona: "p",
+  scope: "una persona de prueba",
   refusalPhrase: "no sé",
   voice: { provider: "gemini-live", model: "m", voiceName: "v", greeting: "hola" },
   text: { model: "m" },
+  ui: { intro: "intro" },
   limits: {
     sessionSeconds: 10,
     warningAtSeconds: 5,

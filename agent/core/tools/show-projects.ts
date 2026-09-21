@@ -36,7 +36,7 @@ export function toCard(d: Document): ProjectCard {
 export const showProjects: Tool<z.infer<typeof input>> = {
   name: "mostrar_proyectos",
   description:
-    "Muestra en pantalla las tarjetas de uno o más proyectos mientras hablas de ellos. Llámala una sola vez por turno, antes de empezar a hablar, con los ids de todos los proyectos que vas a mencionar. Solo acepta ids de la lista de proyectos.",
+    "Muestra en pantalla las tarjetas de uno o más elementos de la lista del prompt (proyectos, productos, vuelos…) mientras hablas de ellos. Llámala una sola vez por turno, antes de empezar a hablar, con los ids de todos los que vas a mencionar. Solo acepta ids de esa lista.",
   input,
   sideEffect: false,
   async run({ ids }, ctx) {
@@ -45,7 +45,7 @@ export const showProjects: Tool<z.infer<typeof input>> = {
     if (found.length === 0) {
       return {
         ok: false,
-        error: `Ningún id válido. Ids de proyectos: ${projects.map((d) => d.id).join(", ")}`,
+        error: `Ningún id válido. Ids con tarjeta: ${projects.map((d) => d.id).join(", ")}`,
       };
     }
     const cards = found.map(toCard);

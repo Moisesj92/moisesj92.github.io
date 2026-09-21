@@ -122,3 +122,21 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 **Por qué:** con 20/día, el modelo grande como principal solo añade una llamada fallida y ~1 s a cada turno antes de caer al respaldo. La calidad de los lite en este dominio (respuestas de 2–4 frases sobre un corpus pequeño, con tool calling) se validó en la sesión de 20 minutos y en las evals: no hubo una respuesta que el grande hiciera mejor.
 
 **Consecuencias:** los lite tienen 500 peticiones/día por modelo en free tier; una suite completa de evals son ~230 llamadas (respuestas con tool loop + juez), así que caben **dos corridas completas al día** entre local y CI. El runner corta con reporte parcial cuando se agota. La voz (`gemini-3.8-live`) no cambia; su cuota es otra y hay que medirla. Este dato pesa en la decisión de la semana 3 (¿pagar?): en free tier el cuello es el modelo grande, no los lite. El presupuesto y el kill-switch de Fase 3 deben contar peticiones por modelo, no solo por sesión.
+
+---
+
+## ADR-008 — Lo que reveló el segundo tenant
+
+**Fecha:** 2026-09-21 · **Estado:** aceptada
+
+**Contexto:** el plan pide desplegar un segundo tenant y cronometrarlo: "si toma más de una tarde, la abstracción está mal". Se montó `condor-orbital` (empresa ficticia de vuelos espaciales, 12 documentos) sin tocar nada de `tenants/arsenio/`.
+
+**Resultado:** ~12 minutos de reloj para el contenido y los cambios de motor, más la prueba. La abstracción aguantó donde importaba (retriever, tools, guardián, almacenamiento, evals: cero cambios) y falló en tres sitios previsibles, que se corrigieron:
+
+1. **El schema de `agent.yaml` descartaba claves desconocidas en silencio.** Pasa a `strictObject`: una clave mal escrita rompe el arranque. Se añaden `scope`, `ui.intro`, `ui.cardsLabel`, `legal.responsible`, `links.website` y `brand.avatar`.
+2. **El prompt asumía una persona** ("su experiencia, proyectos", "el correo y el LinkedIn", "en tercera persona"). La regla 1 usa `scope`; el contacto se toma de la ficha; la voz gramatical la fija la persona del tenant. Las descripciones de los tools también eran de persona.
+3. **La interfaz tenía al primer tenant cableado**: avatar importado estáticamente, nombre en el título global, enlaces al portafolio. Ahora el layout por tenant (`/` para el de por defecto, `/t/<id>` para el resto) carga lo público del tenant y lo reparte a header, footer, metadata, imagen OG y aviso de privacidad. El avatar vive en `tenants/<id>/` y lo sirve `/api/tenant/avatar`.
+
+**Lo que no se generalizó a propósito:** los nombres de los tools (`buscar_experiencia`, `mostrar_proyectos`) son parte del contrato que ven el modelo y las evals de Arsenio; se dejaron con descripciones neutras. `descargar_cv` simplemente no se habilita para una empresa. Las evals y `live-check` siguen fijados al tenant de la config; parametrizarlos es trabajo pendiente.
+
+**Consecuencia:** `grep -ri arsenio core providers lib app components` devuelve nada. La frase "un tenant nuevo es una carpeta" es verdad hoy, con dos salvedades: hay que escribir el corpus, y el modelo lite rechaza preguntas de cultura pop si el `scope` no las cubre — el easter egg de Duna necesitó ampliar el scope y una línea en la ficha.
