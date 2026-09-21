@@ -15,6 +15,14 @@ export interface ToolStep {
   ms: number;
 }
 
+/** Una llamada al modelo dentro del turno, para el panel de eventos. */
+export interface ModelCall {
+  model: string;
+  ms: number;
+  /** "ok", o el status HTTP del fallo (429/503) que llevó al siguiente intento */
+  result: string;
+}
+
 export interface ChatTurn {
   text: string;
   steps: ToolStep[];
@@ -22,6 +30,8 @@ export interface ChatTurn {
   sources: string[];
   /** modelo que respondió: el principal o el de respaldo */
   model: string;
+  /** dónde se fue el tiempo */
+  timing: { modelCalls: ModelCall[]; toolsMs: number; totalMs: number };
 }
 
 /** Tope de rondas de tools por turno; evita loops si el modelo insiste. */
@@ -79,6 +89,8 @@ export async function runTextTurn(
 
   const steps: ToolStep[] = [];
   const sources = new Set<string>();
+  const modelCalls: ModelCall[] = [];
+  const turnStarted = performance.now();
   const generationConfig = {
     systemInstruction: buildSystemPrompt(runtime, "text"),
     tools: [{ functionDeclarations: registry.declarations() }],
@@ -93,10 +105,13 @@ export async function runTextTurn(
 
   for (let round = 0; round <= MAX_ROUNDS; round++) {
     let response;
+    const callStarted = performance.now();
     try {
       response = await ai.models.generateContent({ model, contents, config: generationConfig });
+      modelCalls.push({ model, ms: Math.round(performance.now() - callStarted), result: "ok" });
     } catch (err) {
       if (!isUnavailable(err)) throw err;
+      modelCalls.push({ model, ms: Math.round(performance.now() - callStarted), result: String(err.status) });
       attempt++;
       if (attempt >= attempts.length) throw new ModelUnavailableError(err.status);
       if (attempt === models.length) await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS));
@@ -109,7 +124,17 @@ export async function runTextTurn(
     const modelContent = response.candidates?.[0]?.content;
     const calls = (modelContent?.parts ?? []).filter((p) => p.functionCall);
     if (calls.length === 0 || round === MAX_ROUNDS) {
-      return { text: response.text?.trim() ?? "", steps, sources: [...sources], model };
+      return {
+        text: response.text?.trim() ?? "",
+        steps,
+        sources: [...sources],
+        model,
+        timing: {
+          modelCalls,
+          toolsMs: steps.reduce((sum, s) => sum + s.ms, 0),
+          totalMs: Math.round(performance.now() - turnStarted),
+        },
+      };
     }
 
     contents.push(modelContent!);
@@ -130,5 +155,5 @@ export async function runTextTurn(
     contents.push({ role: "user", parts: responseParts });
   }
   // inalcanzable: el for retorna en la última ronda
-  return { text: "", steps, sources: [...sources], model };
+  return { text: "", steps, sources: [...sources], model, timing: { modelCalls, toolsMs: 0, totalMs: 0 } };
 }
