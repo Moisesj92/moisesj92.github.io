@@ -7,7 +7,7 @@ Portfolio personal de Arsenio Jimenez (AJ) — desarrollador full stack. Este re
 - **Bilingüe:** español en `/` e inglés en `/en`, con switch ES/EN en el header. Contenido en diccionarios tipados (`src/i18n/dictionaries/`).
 - **Páginas:** Inicio (intro, skills, CTA al asistente de voz, experiencia), Sobre mí (bio, experiencia detallada, educación, idiomas) y Proyectos (preview automático vía Microlink).
 - **SEO / Social:** metadata por idioma (`hreflang`, canonical), Open Graph y Twitter Card con `public/images/avatar2.jpg`.
-- **Deploy:** export estático (`next build` → `out/`) publicado en GitHub Pages por el workflow `pages.yml`.
+- **Deploy:** export estático (`pnpm build` → `out/`) publicado en GitHub Pages por el workflow `pages.yml`.
 
 ## Agente de voz
 
@@ -27,10 +27,10 @@ En [`agent/`](agent/) vive un agente de voz de dominio cerrado (Next.js + Gemini
 ## Cómo correr en local
 
 ```bash
-nvm use && npm install && npm run dev
+nvm use && pnpm install && pnpm dev
 ```
 
-Abre <http://localhost:3000>. `npm run build` genera el sitio estático en `out/`.
+Abre <http://localhost:3000>. `pnpm build` genera el sitio estático en `out/`.
 
 Para añadir o cambiar textos, edita `src/i18n/dictionaries/es.ts` y `en.ts` (el tipo de `en` se deriva de `es`, así que TypeScript avisa si falta una clave).
 
