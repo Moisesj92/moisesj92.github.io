@@ -10,6 +10,7 @@ const INPUT_MIME = "audio/pcm;rate=16000";
  * envía nada de eso.
  */
 export class GeminiLiveProvider implements VoiceProvider {
+  readonly handlesAudio = false;
   private session: Session | null = null;
   private emit: (e: VoiceEvent) => void = () => {};
   private closedByUs = false;
