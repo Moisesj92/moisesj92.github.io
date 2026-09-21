@@ -91,6 +91,8 @@ export const en: typeof es = {
   },
   footer: {
     rights: 'All rights reserved.',
+    photos: 'Photos by',
+    on: 'on',
   },
   resume: [
     {

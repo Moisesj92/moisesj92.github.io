@@ -89,6 +89,8 @@ export const es = {
   },
   footer: {
     rights: 'Todos los derechos reservados.',
+    photos: 'Fotos de',
+    on: 'en',
   },
   resume: [
     {

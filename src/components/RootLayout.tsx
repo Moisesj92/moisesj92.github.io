@@ -24,14 +24,12 @@ export function buildMetadata(locale: Locale): Metadata {
       title: t.meta.title,
       description: t.meta.description,
       url: localePath(locale, '/'),
-      images: [site.ogImage],
       locale: locale === 'es' ? 'es_CL' : 'en_US',
     },
     twitter: {
       card: 'summary_large_image',
       title: t.meta.title,
       description: t.meta.description,
-      images: [site.ogImage],
     },
   }
 }
