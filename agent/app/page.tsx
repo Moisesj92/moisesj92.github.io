@@ -122,7 +122,7 @@ function VoicePanel({
   voice: ReturnType<typeof useVoiceSession>;
   onSwitchToText: () => void;
 }) {
-  const { state, error, failure, level, agentLevel, expiresAt, start, stop, prewarm } = voice;
+  const { state, error, failure, level, agentLevel, expiresAt, degraded, start, stop, prewarm } = voice;
   const startBtn = useRef<HTMLButtonElement>(null);
 
   // En móvil no hay hover: cuando el botón entra en pantalla ya hay intención suficiente.
@@ -165,7 +165,7 @@ function VoicePanel({
             {busy ? LABEL[state] : "Iniciar conversación"}
           </button>
         )}
-        <Visualizer level={state === "speaking" ? agentLevel : level} mode={vizMode} />
+        <Visualizer level={state === "speaking" ? (degraded ? 0.15 : agentLevel) : level} mode={vizMode} />
         <span
           aria-live="polite"
           style={{
@@ -191,6 +191,12 @@ function VoicePanel({
             </button>
           )}
         </div>
+      )}
+      {active && degraded === "web-speech" && (
+        <p role="status" style={{ margin: "8px 0 0", padding: "8px 12px", borderRadius: 8, background: "rgba(234,179,8,0.15)", fontSize: 13 }}>
+          La voz principal no está disponible ahora mismo; estás usando la voz básica del navegador. Funciona por turnos
+          (habla, espera la respuesta) y suena peor. El texto tiene la misma calidad de siempre.
+        </p>
       )}
       {active && expiresAt && (
         <p style={{ color: "var(--muted)", fontSize: 13, margin: "8px 0 0" }}>

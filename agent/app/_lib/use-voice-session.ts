@@ -6,6 +6,7 @@ import { InsecureContextError, MicCapture, MicDeniedError } from "@/lib/audio/ca
 import { PcmPlayer } from "@/lib/audio/playback";
 import {
   createVoiceProvider,
+  webSpeechAvailable,
   type SessionGrant,
   type VoiceEvent,
   type VoiceProvider,
@@ -54,6 +55,8 @@ export function useVoiceSession(tenant?: string) {
   const [level, setLevel] = useState(0);
   const [agentLevel, setAgentLevel] = useState(0);
   const [ttfaMs, setTtfaMs] = useState<number | null>(null);
+  /** "web-speech": la voz principal no estaba y se usa la del navegador (aviso honesto) */
+  const [degraded, setDegraded] = useState<"web-speech" | null>(null);
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -295,6 +298,22 @@ export function useVoiceSession(tenant?: string) {
             void runTool(call);
           }
           break;
+        case "toolResult":
+          pushLog(`tool ${e.name} (servidor): ${e.result.ok ? "ok" : e.result.error}`);
+          turn.current.tools.push({ name: e.name, ok: e.result.ok, ms: 0 });
+          for (const s of e.result.sources ?? []) turn.current.sources.add(s);
+          applyUi(e.result.ui);
+          break;
+        case "agentSpeaking":
+          setState((s) => (s === "listening" || s === "speaking" ? (e.speaking ? "speaking" : "listening") : s));
+          if (e.speaking && !firstAudioLogged.current) {
+            firstAudioLogged.current = true;
+            const ms = Math.round(performance.now() - clickedAt.current);
+            ttfa.current = ms;
+            setTtfaMs(ms);
+            pushLog(`primer audio (navegador) a los ${ms} ms desde el click`);
+          }
+          break;
         case "turnComplete":
           pushLog("turno completo");
           closeTurn();
@@ -310,12 +329,43 @@ export function useVoiceSession(tenant?: string) {
           break;
       }
     },
-    [appendTranscript, closeTurn, fail, pushLog, runTool, teardown],
+    [appendTranscript, applyUi, closeTurn, fail, pushLog, runTool, teardown],
   );
+
+  /** Último escalón de la cascada: Web Speech API con el cerebro en /api/chat. */
+  const startWebSpeech = useCallback(async () => {
+    // La API del navegador captura y reproduce por su cuenta.
+    const m = mic.current;
+    const pl = player.current;
+    mic.current = null;
+    player.current = null;
+    await m?.stop();
+    await pl?.close();
+    setLevel(0);
+
+    const info = (await fetch(`/api/tenant${tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)) as { greeting?: string; languages?: string[] } | null;
+    const lang = info?.languages?.[0] === "en" ? "en-US" : "es-CL";
+    const local: SessionGrant = {
+      sessionId: crypto.randomUUID(),
+      token: "",
+      model: "web-speech",
+      expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+      connectBy: new Date().toISOString(),
+      greeting: info?.greeting ?? "Hola. ¿Qué te gustaría saber?",
+    };
+    grant.current = local;
+    setExpiresAt(null);
+    setDegraded("web-speech");
+    provider.current = createVoiceProvider("web-speech", { tenant, lang });
+    await provider.current.connect(local, onEvent);
+  }, [onEvent, tenant]);
 
   const start = useCallback(async () => {
     setError(null);
     setFailure(null);
+    setDegraded(null);
     setTranscript([]);
     setTtfaMs(null);
     resetUi();
@@ -353,7 +403,18 @@ export function useVoiceSession(tenant?: string) {
         if (g) pushLog("usando token precalentado: el click no espera al servidor");
         else pushLog("el token precalentado ya no servía; pidiendo uno nuevo");
       }
-      grant.current = g ?? (await fetchGrant());
+      try {
+        grant.current = g ?? (await fetchGrant());
+      } catch (err) {
+        // Cascada de degradación: si la voz principal no está (cuota, presupuesto,
+        // rate limit, kill-switch) y el navegador sabe reconocer voz, se sigue
+        // con la voz del navegador y se avisa. Otros errores suben.
+        const kind = (err as { kind?: FailureKind }).kind;
+        if (kind !== "quota" || !webSpeechAvailable()) throw err;
+        pushLog(`voz principal no disponible (${err instanceof Error ? err.message : err}); usando la voz del navegador`);
+        await startWebSpeech();
+        return;
+      }
       setExpiresAt(grant.current.expiresAt);
       pushLog(`token recibido, modelo ${grant.current.model}, vence ${grant.current.expiresAt}`);
 
@@ -369,7 +430,7 @@ export function useVoiceSession(tenant?: string) {
         fail(err instanceof Error ? err.message : String(err), kind);
       }
     }
-  }, [fail, fetchGrant, onEvent, pushLog, resetUi]);
+  }, [fail, fetchGrant, onEvent, pushLog, resetUi, startWebSpeech]);
 
   const stop = useCallback(async () => {
     await teardown();
@@ -390,6 +451,7 @@ export function useVoiceSession(tenant?: string) {
     level,
     agentLevel,
     ttfaMs,
+    degraded,
     prewarm,
     transcript,
     log,
