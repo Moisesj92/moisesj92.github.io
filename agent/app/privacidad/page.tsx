@@ -4,6 +4,7 @@ import { getTenantRuntime } from '@/core/runtime'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Privacidad' }
 
 /**
