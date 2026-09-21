@@ -228,6 +228,16 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 
 ---
 
+## Pendientes acumulados
+
+Cosas que salieron por el camino y no estaban en el plan. Se cierran cuando toque, no antes.
+
+- [ ] Key de Gemini para CI en un proyecto de Google distinto (cuota propia) y restaurar el trigger `pull_request` en `agent-evals.yml`. Hoy las evals comparten cuota con el chat de texto de producción (500/día por modelo lite) y corren solo a mano.
+- [ ] Juez solo en los casos que lo necesitan (rechazos y estilo); reglas deterministas para el resto → ~140 llamadas por corrida en vez de ~230.
+- [ ] Medir la cuota real de `gemini-3.8-live` (voz) en free tier.
+- [ ] Android real.
+- [ ] Documentos de situación más largos (~300 palabras) donde el log de turnos muestre que la gente pregunta y el agente se queda corto.
+
 ## Apéndice: vocabulario
 
 | Práctica | Origen | El código | Propósito |
