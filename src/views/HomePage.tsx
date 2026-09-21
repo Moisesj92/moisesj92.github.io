@@ -45,6 +45,20 @@ function MicIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
+/* Icono del botón "Download CV" del template Spotlight original. */
+function ArrowDownIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M4.75 8.75 8 12.25m0 0 3.25-3.5M8 12.25v-8.5"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function BriefcaseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg
@@ -155,11 +169,20 @@ function Resume({ t }: { t: Dictionary }) {
         ))}
       </ol>
       <Button
+        href={site.cvPdf}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group mt-6 w-full"
+      >
+        {t.home.cvCta}
+        <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
+      </Button>
+      <Button
         href={site.linkedin}
         target="_blank"
         rel="noopener noreferrer"
         variant="secondary"
-        className="group mt-6 w-full"
+        className="group mt-3 w-full"
       >
         {t.home.workCta}
       </Button>
