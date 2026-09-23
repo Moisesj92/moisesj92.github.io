@@ -8,12 +8,16 @@
 # y commitear evals/reports/latest.md.
 name: agent-evals
 
+# DESACTIVADA en PR mientras se estabiliza el juez: dos corridas seguidas
+# del mismo contenido dieron 100 % y 94 % de rechazos, así que hoy bloquea
+# PRs por ruido. Para volver a activarla, restaurar:
+#
+#   pull_request:
+#     paths:
+#       - "apps/agent/core/**"
+#       - "apps/agent/tenants/**"
+#       - "apps/agent/evals/**"
 on:
-  pull_request:
-    paths:
-      - "apps/agent/core/**"
-      - "apps/agent/tenants/**"
-      - "apps/agent/evals/**"
   workflow_dispatch:
 
 concurrency:
