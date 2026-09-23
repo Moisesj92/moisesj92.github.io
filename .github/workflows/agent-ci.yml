@@ -5,12 +5,12 @@ name: agent-ci
 on:
   pull_request:
     paths:
-      - "agent/**"
+      - "apps/agent/**"
       - ".github/workflows/agent-ci.yml"
   push:
     branches: [master]
     paths:
-      - "agent/**"
+      - "apps/agent/**"
       - ".github/workflows/agent-ci.yml"
 
 jobs:
@@ -18,18 +18,21 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: agent
+        working-directory: apps/agent
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: agent/package.json
+          package_json_file: package.json
       - uses: actions/setup-node@v4
         with:
-          node-version-file: agent/.nvmrc
+          node-version-file: apps/agent/.nvmrc
           cache: pnpm
-          cache-dependency-path: agent/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
+      # El lockfile es único y vive en la raíz del workspace; pnpm solo lo
+      # usa si el install corre desde ahí.
       - run: pnpm install --frozen-lockfile
+        working-directory: .
       - run: pnpm lint
       - run: pnpm test
       # build antes que tsc: next build genera next-env.d.ts (tipos de imágenes, rutas)
