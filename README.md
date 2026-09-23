@@ -3,6 +3,7 @@
 Portfolio personal de Arsenio Jimenez (AJ) — desarrollador full stack. Este repo contiene el sitio estático en HTML/CSS, bilingüe (español/inglés), enfocado en proyectos recientes, perfil profesional orientado a resultados, y branding personal.
 
 ## Características
+
 - **Diseño:** template [Spotlight](https://tailwindcss.com/plus/templates/spotlight) de Tailwind Plus (Next.js 15 + Tailwind CSS 4), con modo claro/oscuro.
 - **Bilingüe:** español en `/` e inglés en `/en`, con switch ES/EN en el header. Contenido en diccionarios tipados (`src/i18n/dictionaries/`).
 - **Páginas:** Inicio (intro, skills, CTA al asistente de voz, experiencia), Sobre mí (bio, experiencia detallada, educación, idiomas) y Proyectos (preview automático vía Microlink).
@@ -14,6 +15,7 @@ Portfolio personal de Arsenio Jimenez (AJ) — desarrollador full stack. Este re
 En [`apps/agent/`](apps/agent/) vive un agente de voz de dominio cerrado (Next.js + Gemini Live) que responde sobre la experiencia de Arsenio a partir de un corpus verificado. Se despliega en Vercel desde este mismo repo; la landing sigue en GitHub Pages. Plan, decisiones y cómo correrlo: [`agent/README.md`](agent/README.md).
 
 ## Estructura
+
 El repo es un **workspace de pnpm** con dos aplicaciones que se despliegan por separado:
 
 ```
@@ -64,8 +66,3 @@ Para añadir o cambiar textos, edita `apps/site/src/i18n/dictionaries/es.ts` y `
 ## Licencia
 
 El contenido (textos, imágenes) es personal. El diseño usa el template Spotlight bajo la [licencia de Tailwind Plus](LICENSE.md): puedes leer el código, pero no reutilizar los componentes del template en otro sitio sin tu propia licencia.
-
----
-_Mantenimiento automatizado por Maca 🌿_
-
-_(Actualización: 2026-09-20)_

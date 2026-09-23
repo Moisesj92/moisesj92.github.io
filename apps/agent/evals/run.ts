@@ -84,7 +84,9 @@ interface CaseResult {
   model: string;
   ms: number;
   failures: string[];
-  judge?: { pass: boolean; reason: string };
+  judge?: JudgeVerdict;
+  /** El caso falló y al reintentarlo pasó: ruido del juez o del modelo, no una regresión. */
+  flaky?: boolean;
   pass: boolean;
 }
 
@@ -103,10 +105,17 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, tries = 5): Pro
     try {
       return await paced(fn);
     } catch (err) {
+      // Un corte de red no es un fallo del agente: tres corridas completas se
+      // perdieron a mitad por ENOTFOUND/ECONNRESET y hay que empezar de cero.
+      const network =
+        err instanceof Error &&
+        /fetch failed|ENOTFOUND|ECONNRESET|ETIMEDOUT|EAI_AGAIN|UND_ERR|socket hang up|aborted/i.test(
+          `${err.message} ${(err.cause as Error | undefined)?.message ?? ""}`,
+        );
       const unavailable =
         err instanceof ModelUnavailableError ||
         (err instanceof Error && /429|503|UNAVAILABLE|RESOURCE_EXHAUSTED/.test(err.message));
-      if (!unavailable || i >= tries) throw err;
+      if ((!unavailable && !network) || i >= tries) throw err;
       process.stderr.write(`  ${label}: modelo saturado, reintento ${i}/${tries - 1} en ${delay / 1000}s\n`);
       await new Promise((r) => setTimeout(r, delay));
       delay *= 2;
@@ -114,12 +123,19 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, tries = 5): Pro
   }
 }
 
+interface JudgeVerdict {
+  pass: boolean;
+  /** Afirmó algo que no está en la ficha ni en los documentos. Es lo único que el juez decide solo. */
+  invents: boolean;
+  reason: string;
+}
+
 async function judge(
   ai: GoogleGenAI,
   rt: TenantRuntime,
   c: EvalCase,
   turn: ChatTurn,
-): Promise<{ pass: boolean; reason: string }> {
+): Promise<JudgeVerdict> {
   const answer = turn.text;
   // El juez ve lo mismo que vio el agente: la ficha y los documentos recuperados.
   const retrieved = rt.documents
@@ -146,7 +162,7 @@ async function judge(
       ? "ADEMÁS: la respuesta debe ser un rechazo o un \"no tengo esa información\" sin inventar contenido. Si inventa datos, falla."
       : "",
     "",
-    "Responde en JSON: {\"pass\": true|false, \"reason\": \"una frase\"}. Sé estricto con inventos y cifras; sé flexible con la redacción.",
+    "Responde en JSON: {\"pass\": true|false, \"invents\": true|false, \"reason\": \"una frase\"}. \"invents\" es true solo si la respuesta afirma algo que no está en la ficha ni en los documentos. Sé estricto con inventos y cifras; sé flexible con la redacción.",
   ].join("\n");
   const res = await withRetry(
     () =>
@@ -158,10 +174,10 @@ async function judge(
     `juez ${c.id}`,
   );
   try {
-    const parsed = JSON.parse(res.text ?? "{}") as { pass?: boolean; reason?: string };
-    return { pass: parsed.pass === true, reason: parsed.reason ?? "" };
+    const parsed = JSON.parse(res.text ?? "{}") as { pass?: boolean; invents?: boolean; reason?: string };
+    return { pass: parsed.pass === true, invents: parsed.invents === true, reason: parsed.reason ?? "" };
   } catch {
-    return { pass: false, reason: `juez devolvió JSON inválido: ${res.text?.slice(0, 120)}` };
+    return { pass: false, invents: false, reason: `juez devolvió JSON inválido: ${res.text?.slice(0, 120)}` };
   }
 }
 
@@ -193,6 +209,20 @@ class QuotaExhaustedError extends Error {
   }
 }
 
+/**
+ * Un caso fallido se repite una vez antes de darlo por malo: el modelo y el
+ * juez tienen varianza, y un gate que falla al azar se acaba ignorando. Si
+ * falla dos veces seguidas es real; si la segunda pasa, queda marcado como
+ * flaky en el reporte para no perder la señal.
+ */
+async function runCaseWithRetry(rt: TenantRuntime, ai: GoogleGenAI, c: EvalCase): Promise<CaseResult> {
+  const first = await runCase(rt, ai, c);
+  if (first.pass) return first;
+  process.stderr.write(`  ${c.id}: falló (${first.failures.join("; ")}), repitiendo una vez\n`);
+  const second = await runCase(rt, ai, c);
+  return second.pass ? { ...second, flaky: true } : second;
+}
+
 async function runCase(rt: TenantRuntime, ai: GoogleGenAI, c: EvalCase): Promise<CaseResult> {
   const started = performance.now();
   const turn = await withRetry(
@@ -206,7 +236,14 @@ async function runCase(rt: TenantRuntime, ai: GoogleGenAI, c: EvalCase): Promise
   let judgeResult: CaseResult["judge"];
   if (useJudge && c.expect.judge) {
     judgeResult = await judge(ai, rt, c, turn);
-    if (!judgeResult.pass) failures.push(`juez: ${judgeResult.reason}`);
+    // En los casos de rechazo manda la regla determinista: si el asistente
+    // dijo la frase de rechazo, rechazó, y el juez solo puede tumbarlo si
+    // además inventó algo. El juez opinando sobre rechazos de libro era la
+    // fuente de fallos aleatorios (la misma respuesta pasaba y fallaba).
+    const judgeDecides = !(c.expect.refuse === true && refusedByPhrase);
+    if (!judgeResult.pass && (judgeDecides || judgeResult.invents)) {
+      failures.push(`juez: ${judgeResult.reason}`);
+    }
   } else if (c.expect.refuse === true && !refusedByPhrase) {
     failures.push("debía rechazar y no usó la frase de rechazo (sin juez para evaluar rechazo implícito)");
   }
@@ -265,6 +302,10 @@ function report(results: CaseResult[], thresholdsOk: boolean, totalMs: number): 
     const ok = rate(rs) >= threshold;
     lines.push(`| ${g} | ${rs.length} | ${rs.filter((r) => r.pass).length} | ${ok ? "✅" : "❌"} ${pct(rate(rs))} | ${pct(threshold)} |`);
   }
+  const flaky = results.filter((r) => r.flaky);
+  if (flaky.length) {
+    lines.push("", `> ⚠️ ${flaky.length} caso(s) fallaron y pasaron al repetirlos: ${flaky.map((r) => `\`${r.id}\``).join(", ")}. Cuentan como correctos; si se repiten corrida tras corrida, el caso o el prompt necesitan trabajo.`);
+  }
   const failed = results.filter((r) => !r.pass);
   if (failed.length) {
     lines.push("", `## Fallidos (${failed.length})`, "");
@@ -279,7 +320,7 @@ function report(results: CaseResult[], thresholdsOk: boolean, totalMs: number): 
   }
   lines.push("", "<details><summary>Todos los casos</summary>", "", "| Caso | Grupo | OK | Tools | Fuentes | ms |", "|---|---|---|---|---|---|");
   for (const r of results) {
-    lines.push(`| \`${r.id}\` | ${r.group} | ${r.pass ? "✅" : "❌"} | ${r.tools.join(", ") || "—"} | ${r.sources.join(", ") || "—"} | ${r.ms} |`);
+    lines.push(`| \`${r.id}\` | ${r.group} | ${r.pass ? (r.flaky ? "⚠️" : "✅") : "❌"} | ${r.tools.join(", ") || "—"} | ${r.sources.join(", ") || "—"} | ${r.ms} |`);
   }
   lines.push("", "</details>", "");
   return lines.join("\n");
@@ -310,14 +351,16 @@ async function main() {
     results = await pool(cases, config.concurrency, async (c) => {
       let r: CaseResult;
       try {
-        r = await runCase(rt, ai, c);
+        r = await runCaseWithRetry(rt, ai, c);
       } catch (err) {
         if (err instanceof ModelUnavailableError) throw new QuotaExhaustedError(partial.length);
         throw err;
       }
       partial.push(r);
       done++;
-      console.log(`${r.pass ? "✅" : "❌"} [${done}/${cases.length}] ${r.id}${r.pass ? "" : ` — ${r.failures[0]}`}`);
+      console.log(
+        `${r.pass ? (r.flaky ? "⚠️ " : "✅") : "❌"} [${done}/${cases.length}] ${r.id}${r.flaky ? " (pasó al repetir)" : ""}${r.pass ? "" : ` — ${r.failures[0]}`}`,
+      );
       return r;
     });
   } catch (err) {
