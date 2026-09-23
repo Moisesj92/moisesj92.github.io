@@ -158,3 +158,18 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 **Decisión:** se mantienen los lite. El grande es ~45 % más lento y más caro, y las respuestas son equivalentes: ambos mantienen el matiz ("MongoDB solo en un proyecto personal con MERN") y ambos rechazan lo que está fuera del ámbito. Tiene sentido: el dominio es cerrado y el contexto va entero en el prompt, así que el trabajo del modelo es redactar a partir de documentos dados, no razonar con conocimiento propio. Ahí el tamaño no compra nada.
 
 **Consecuencias:** la conclusión de ADR-007 sobrevive, pero por otra razón — conviene no citarla como "decisión por cuota". La suite completa con el modelo grande se cortó a mitad al tomarse la decisión con los datos de latencia y paridad; si algún día se quiere el dato fino, es `pnpm evals` con el modelo cambiado en `agent.yaml`. Lo que sí cambia con la key de pago: las evals vuelven a correr en cada PR que toque `agent/core`, `agent/tenants` o `agent/evals` (antes eran manuales porque una corrida se comía media cuota diaria de producción), y el presupuesto diario del tenant pasa a ser un control de gasto, no de cuota.
+
+## ADR-011 — En los rechazos decide la regla, no el juez
+
+**Fecha:** 2026-09-23 · **Estado:** aceptada
+
+**Contexto:** al volver a correr las evals en cada PR, la suite empezó a fallar sin que cambiara nada del agente: dos corridas seguidas sobre el mismo commit dieron rechazos 100 % y 94 %. El caso que parpadeaba era siempre del grupo `rechazo`, y el motivo era el juez: la misma respuesta ("Arsenio no ha trabajado en Google", con la frase de rechazo) la aprobaba una vez y la reprobaba la siguiente, unas veces por explicar de más y otras por no explicar. Un umbral del 100 % con un evaluador no determinista es un gate que falla al azar, y un gate que falla al azar se ignora.
+
+**Decisión:**
+
+1. **En los casos `refuse: true` manda la regla determinista.** Si la respuesta contiene la frase de rechazo del tenant, rechazó. El juez sigue corriendo y se guarda su opinión, pero solo puede tumbar el caso si además marca `invents: true` — un campo nuevo de su JSON, que es lo único que un modelo juzga mejor que una regla. Para los rechazos implícitos (sin la frase) el juez sigue decidiendo, porque ahí no hay regla posible.
+2. **Un caso fallido se repite una vez.** Si falla dos veces es real; si la segunda pasa cuenta como correcto pero sale marcado `⚠️` en consola y en el reporte. La marca importa: sin ella el reintento escondería regresiones que aparecen la mitad de las veces.
+3. **Los `contains` son para hechos, no para redacción.** `exp-transbank` exigía la palabra "ETPay" y `faq-mongodb` la palabra "MERN" en respuestas que eran correctas; ambos pasaron a comprobar el hecho que no puede faltar (la empresa, la distinción personal/profesional) y a dejar el resto en el criterio del juez.
+4. **Los cortes de red se reintentan.** Tres corridas completas se perdieron a mitad por `ENOTFOUND`/`ECONNRESET`: diez minutos tirados por algo que no dice nada del agente.
+
+**Consecuencias:** la suite volvió a `pull_request` y pasó 76/76 en CI, con un caso marcado como flaky (el juez devolvió JSON inválido y al repetir pasó) — justo el ruido que el reintento existe para absorber. El costo es una llamada extra por caso fallido y aceptar que un rechazo con la frase correcta no se discute: si el modelo empezara a decir la frase y luego inventar, lo atrapa `invents` o un `not_contains`, no el criterio libre del juez.

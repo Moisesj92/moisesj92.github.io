@@ -222,7 +222,7 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 
 ### Decisiones que tomas sobre la marcha
 
-- [ ] Semana 3: ¿pagas el proveedor premium o te quedas en free tier? Decídelo con el proyecto ya funcionando y el costo por sesión medido
+- [x] Semana 3: ¿pagas el proveedor premium o te quedas en free tier? **Pagas** (23-09-2026). Con la cuota fuera de la ecuación se remidió el modelo de texto: el grande es ~45 % más lento sin responder mejor, así que siguen los *lite* por mérito ([ADR-010](decisions.md))
 - [x] (ficticio) ¿El segundo tenant es Bendito Residuo o un tenant de demo ficticio? El real es más convincente pero te obliga a pensar en datos de clientes
 - [x] ¿Repo público desde el día uno o al terminar? Público desde el día uno genera historial de commits creíble, pero expone los tropiezos
 
@@ -232,12 +232,15 @@ No es técnico. Es que la Fase 1 **parece** "solo escribir un prompt" y se salta
 
 Cosas que salieron por el camino y no estaban en el plan. Se cierran cuando toque, no antes.
 
-- [ ] Key de Gemini para CI en un proyecto de Google distinto (cuota propia) y restaurar el trigger `pull_request` en `agent-evals.yml`. Hoy las evals comparten cuota con el chat de texto de producción (500/día por modelo lite) y corren solo a mano.
+- [x] ~~Key de Gemini para CI en un proyecto de Google distinto (cuota propia)~~ y restaurar el trigger `pull_request` en `agent-evals.yml`. Hoy las evals comparten cuota con el chat de texto de producción (500/día por modelo lite) y corren solo a mano.
 - [ ] Evals y `live-check` parametrizados por tenant (`--tenant`); hoy fijados al de `evals/config.yaml`.
-- [ ] Juez solo en los casos que lo necesitan (rechazos y estilo); reglas deterministas para el resto → ~140 llamadas por corrida en vez de ~230.
-- [ ] Medir la cuota real de `gemini-3.8-live` (voz) en free tier.
+- [ ] Juez solo en los casos que lo necesitan; reglas deterministas para el resto → menos llamadas y corridas más cortas que los ~10 min de hoy. Ya no es cuestión de cuota: en los rechazos el juez dejó de decidir ([ADR-011](decisions.md)), pero se sigue llamando en los 76 casos.
+- [ ] Medir el **costo** real por sesión de voz (`gemini-3.8-live`), que es lo que importa ahora que no hay cuota. El presupuesto diario del tenant sigue expresado en sesiones, no en dinero.
 - [ ] Android real.
 - [ ] Documentos de situación más largos (~300 palabras) donde el log de turnos muestre que la gente pregunta y el agente se queda corto.
+- [ ] Vercel: *Ignored Build Step* para no desplegar el agente cuando el commit solo toca `apps/site` (`git diff --quiet HEAD^ HEAD -- apps/agent packages/ui pnpm-lock.yaml`). Es del dashboard, no del repo.
+- [ ] Neon: límite de branches alcanzado; los previews de Vercel fallan al crear la suya. Producción no se ve afectada.
+- [ ] Revisar los `contains` de los casos que quedan: dos fallaban por exigir una palabra concreta (`ETPay`, `MERN`) en respuestas correctas. Un `contains` es para hechos que no pueden faltar, no para redacción.
 
 ## Apéndice: vocabulario
 
