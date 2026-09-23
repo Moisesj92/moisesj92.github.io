@@ -26,8 +26,9 @@ voice:
   greeting: "Hola, soy el asistente de Arsenio. ¿Qué te gustaría saber sobre su experiencia?"
 
 text:
-  # gemini-3.8-flash tiene 20 peticiones/día en free tier: inservible como
-  # principal. Los lite responden igual de bien para este dominio (ADR-007).
+  # Los lite responden igual de bien para este dominio y más rápido que
+  # gemini-3.8-flash, que se midió y se descartó con la key de pago
+  # (ADR-007, revisado en ADR-010).
   model: gemini-3.1-flash-lite
   fallbackModel: gemini-3.5-flash-lite
 
@@ -50,7 +51,7 @@ limits:
   textTurnsPerIpPerDay: 40
   # Presupuesto diario del tenant (ventana móvil de 24 h). Al llegar, el
   # canal se cierra solo y avisa por webhook al 50 % y al 100 %. Texto:
-  # los lite tienen 500 peticiones/día y un turno son 1-2 (ADR-007).
+  # el límite ya no es la cuota sino el gasto: un turno son 1-2 llamadas.
   voiceSessionsPerDay: 60
   textTurnsPerDay: 250
 

@@ -140,3 +140,21 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 **Lo que no se generalizó a propósito:** los nombres de los tools (`buscar_experiencia`, `mostrar_proyectos`) son parte del contrato que ven el modelo y las evals de Arsenio; se dejaron con descripciones neutras. `descargar_cv` simplemente no se habilita para una empresa. Las evals y `live-check` siguen fijados al tenant de la config; parametrizarlos es trabajo pendiente.
 
 **Consecuencia:** `grep -ri arsenio core providers lib app components` devuelve nada. La frase "un tenant nuevo es una carpeta" es verdad hoy, con dos salvedades: hay que escribir el corpus, y el modelo lite rechaza preguntas de cultura pop si el `scope` no las cubre — el easter egg de Duna necesitó ampliar el scope y una línea en la ficha.
+
+## ADR-010 — Con la key de pago, los modelos lite siguen siendo los principales
+
+**Fecha:** 2026-09-23 · **Estado:** aceptada · **Revisa:** [ADR-007](#adr-007--modelos-lite-como-principales-en-texto-por-cuota-del-free-tier)
+
+**Contexto:** ADR-007 eligió los modelos *lite* para la ruta de texto porque `gemini-3.8-flash` tenía 20 peticiones/día en el free tier. Desde el 2026-09-23 la key es de pago, así que ese argumento desaparece y la decisión había que rehacerla por mérito: ¿responde mejor el modelo grande?
+
+**Medición:** mismas preguntas, mismo prompt y corpus, `gemini-3.8-flash` como principal contra `gemini-3.1-flash-lite`.
+
+| Pregunta | lite | 3.8-flash |
+|---|---|---|
+| Transbank (con tool) | 3974 ms | 5803 ms |
+| MongoDB (matiz de proyecto personal) | 2798 ms | 3616 ms |
+| Rechazo fuera de dominio | 1232 ms | 1592 ms |
+
+**Decisión:** se mantienen los lite. El grande es ~45 % más lento y más caro, y las respuestas son equivalentes: ambos mantienen el matiz ("MongoDB solo en un proyecto personal con MERN") y ambos rechazan lo que está fuera del ámbito. Tiene sentido: el dominio es cerrado y el contexto va entero en el prompt, así que el trabajo del modelo es redactar a partir de documentos dados, no razonar con conocimiento propio. Ahí el tamaño no compra nada.
+
+**Consecuencias:** la conclusión de ADR-007 sobrevive, pero por otra razón — conviene no citarla como "decisión por cuota". La suite completa con el modelo grande se cortó a mitad al tomarse la decisión con los datos de latencia y paridad; si algún día se quiere el dato fino, es `pnpm evals` con el modelo cambiado en `agent.yaml`. Lo que sí cambia con la key de pago: las evals vuelven a correr en cada PR que toque `agent/core`, `agent/tenants` o `agent/evals` (antes eran manuales porque una corrida se comía media cuota diaria de producción), y el presupuesto diario del tenant pasa a ser un control de gasto, no de cuota.
