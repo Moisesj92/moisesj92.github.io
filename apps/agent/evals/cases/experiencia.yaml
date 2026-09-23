@@ -14,9 +14,13 @@ cases:
     question: ¿Qué hizo con Transbank?
     expect:
       refuse: false
-      contains: ["Alseco", "ETPay"]
+      # "ETPay" estaba aquí y el caso fallaba cuando la respuesta era correcta
+      # pero breve: nadie preguntó por la otra pasarela. El criterio lo juzga
+      # el juez; el match literal solo comprobaba la redacción.
+      contains: ["Alseco"]
       sources_any: [alseco-ecommerce-b2b]
       tools: [buscar_experiencia]
+      judge: Dice que integró Transbank como pasarela de pago en el e-commerce B2B de Alseco, junto al equipo. No inventa detalles de la integración.
 
   - id: exp-alseco-productos
     question: ¿De qué tamaño era el catálogo del e-commerce de Alseco?
