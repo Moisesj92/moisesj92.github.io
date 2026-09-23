@@ -11,9 +11,9 @@ name: agent-evals
 on:
   pull_request:
     paths:
-      - "agent/core/**"
-      - "agent/tenants/**"
-      - "agent/evals/**"
+      - "apps/agent/core/**"
+      - "apps/agent/tenants/**"
+      - "apps/agent/evals/**"
   workflow_dispatch:
 
 concurrency:
@@ -26,18 +26,21 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: agent
+        working-directory: apps/agent
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: agent/package.json
+          package_json_file: package.json
       - uses: actions/setup-node@v4
         with:
-          node-version-file: agent/.nvmrc
+          node-version-file: apps/agent/.nvmrc
           cache: pnpm
-          cache-dependency-path: agent/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
+      # El lockfile es único y vive en la raíz del workspace; pnpm solo lo
+      # usa si el install corre desde ahí.
       - run: pnpm install --frozen-lockfile
+        working-directory: .
       - name: Evals
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

@@ -1,0 +1,45 @@
+{
+  "name": "agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "live-check": "tsx scripts/live-check.mts",
+    "evals": "tsx evals/run.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.23.0",
+    "@headlessui/react": "^2.2.10",
+    "@repo/ui": "workspace:*",
+    "@tailwindcss/postcss": "^4.3.3",
+    "clsx": "^2.1.1",
+    "next": "16.3.5",
+    "next-themes": "^0.4.6",
+    "nodemailer": "^10.0.10",
+    "postgres": "^3.4.9",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwindcss": "^4.3.3",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "prettier": "^3.9.8",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vitest": "^5.0.1"
+  }
+}
