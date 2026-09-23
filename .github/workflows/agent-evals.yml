@@ -8,16 +8,16 @@
 # y commitear evals/reports/latest.md.
 name: agent-evals
 
-# DESACTIVADA en PR mientras se estabiliza el juez: dos corridas seguidas
-# del mismo contenido dieron 100 % y 94 % de rechazos, así que hoy bloquea
-# PRs por ruido. Para volver a activarla, restaurar:
-#
-#   pull_request:
-#     paths:
-#       - "apps/agent/core/**"
-#       - "apps/agent/tenants/**"
-#       - "apps/agent/evals/**"
+# Corre en cada PR que toque el motor, los tenants o los casos. Contra el
+# ruido del juez: los casos fallidos se repiten una vez, y en los casos de
+# rechazo manda la regla determinista (el juez solo puede tumbarlos si
+# además detecta un invento).
 on:
+  pull_request:
+    paths:
+      - "apps/agent/core/**"
+      - "apps/agent/tenants/**"
+      - "apps/agent/evals/**"
   workflow_dispatch:
 
 concurrency:

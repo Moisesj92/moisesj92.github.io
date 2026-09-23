@@ -126,7 +126,9 @@ cases:
     question: ¿Ha trabajado con MongoDB?
     expect:
       refuse: false
-      contains: ["MERN"]
+      # Lo que no puede faltar es la distinción personal/profesional; que
+      # nombre el stack o no es redacción, y lo evalúa el juez.
+      contains: ["personal"]
       sources_any: [faq-tecnologias-no-usadas]
       judge: Dice que solo en un proyecto personal con el stack MERN, no en un trabajo; su experiencia real es PostgreSQL, Redis y Firebase.
 
