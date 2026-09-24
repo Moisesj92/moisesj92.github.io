@@ -56,11 +56,23 @@ export function Home({ tenant: tenantId }: { tenant?: string }) {
         <Button variant={mode === 'voice' ? 'primary' : 'secondary'} onClick={() => switchTo('voice')} aria-pressed={mode === 'voice'}>
           Voz
         </Button>
-        <Button variant={mode === 'text' ? 'primary' : 'secondary'} onClick={() => switchTo('text')} aria-pressed={mode === 'text'}>
+        <Button
+          variant={mode === 'text' ? 'primary' : 'secondary'}
+          onClick={() => switchTo('text')}
+          aria-pressed={mode === 'text'}
+          data-umami-event="modo-texto"
+        >
           Texto
         </Button>
         {tenant?.links.cvPdf && (
-          <Button variant="secondary" href={tenant.links.cvPdf} target="_blank" rel="noopener noreferrer">
+          <Button
+            variant="secondary"
+            href={tenant.links.cvPdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-umami-event="cv-descargado"
+            data-umami-event-lugar="cabecera"
+          >
             CV (PDF)
           </Button>
         )}
@@ -191,7 +203,13 @@ function VoicePanel({
           <p>{error}</p>
           <div className="mt-3">
             {(failure === 'quota' || failure === 'mic' || failure === 'insecure') && (
-              <Button variant="secondary" onClick={onSwitchToText}>
+              <Button
+                variant="secondary"
+                onClick={onSwitchToText}
+                data-umami-event="modo-texto"
+                data-umami-event-lugar="fallo-voz"
+                data-umami-event-motivo={failure}
+              >
                 Seguir por texto
               </Button>
             )}
@@ -282,7 +300,13 @@ function Effects({
     <div className="mt-10">
       {download && (
         <div className="flex items-center gap-3">
-          <Button href={download.url} target="_blank" rel="noopener noreferrer">
+          <Button
+            href={download.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-umami-event="cv-descargado"
+            data-umami-event-lugar="agente"
+          >
             ⬇ {download.label}
           </Button>
           <button

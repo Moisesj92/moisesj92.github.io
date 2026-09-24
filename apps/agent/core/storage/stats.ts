@@ -1,3 +1,4 @@
+import { DIRECT_ORIGIN } from "../observability/origin";
 import { normalize } from "../retrieval/tokenize";
 import type { StoredTurn, TurnStats } from "./types";
 
@@ -19,6 +20,7 @@ export function computeStats(turns: StoredTurn[]): TurnStats {
   const byModel = new Map<string, number>();
   const questions = new Map<string, { question: string; count: number }>();
   const ttfa: number[] = [];
+  const originBySession = new Map<string, string>();
   let refused = 0;
 
   for (const t of turns) {
@@ -31,6 +33,8 @@ export function computeStats(turns: StoredTurn[]): TurnStats {
     byChannel.set(t.channel, (byChannel.get(t.channel) ?? 0) + 1);
     if (t.model) byModel.set(t.model, (byModel.get(t.model) ?? 0) + 1);
     if (t.refused) refused++;
+    // El origen es de la sesión, no del turno: se queda el primero que aparezca.
+    if (t.origin && !originBySession.has(t.sessionId)) originBySession.set(t.sessionId, t.origin);
     if (t.ttfaMs != null) ttfa.push(t.ttfaMs);
     const key = normalize(t.userText).replace(/[^a-z0-9 ]/g, "").trim().slice(0, 80);
     if (key.length >= 4) {
@@ -41,6 +45,11 @@ export function computeStats(turns: StoredTurn[]): TurnStats {
   }
 
   const durations = [...sessions.values()].map((s) => (s.last - s.first) / 1000);
+  const byOrigin = new Map<string, number>();
+  for (const id of sessions.keys()) {
+    const origin = originBySession.get(id) ?? DIRECT_ORIGIN;
+    byOrigin.set(origin, (byOrigin.get(origin) ?? 0) + 1);
+  }
   return {
     sessions: sessions.size,
     turns: turns.length,
@@ -51,5 +60,6 @@ export function computeStats(turns: StoredTurn[]): TurnStats {
     byChannel: [...byChannel].map(([channel, turns]) => ({ channel, turns })),
     byModel: [...byModel].map(([model, turns]) => ({ model, turns })).sort((a, b) => b.turns - a.turns),
     topQuestions: [...questions.values()].sort((a, b) => b.count - a.count).slice(0, 15),
+    byOrigin: [...byOrigin].map(([origin, sessions]) => ({ origin, sessions })).sort((a, b) => b.sessions - a.sessions),
   };
 }

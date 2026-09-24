@@ -4,12 +4,14 @@ import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
 import { getTenantRuntime, toolContext } from "@/core/runtime";
 import { hashIp, requestIp } from "@/core/session/visitor";
 import { UnknownToolError } from "@/core/tools/registry";
+import { originSchema } from "@/core/observability/origin";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
   tenant: z.string().optional(),
   sessionId: z.string().min(1),
+  origin: originSchema,
   call: z.object({
     id: z.string().min(1),
     name: z.string().min(1),
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
   }
-  const { tenant, sessionId, call } = parsed.data;
+  const { tenant, sessionId, call, origin } = parsed.data;
 
   try {
     const rt = await getTenantRuntime(resolveTenantId(tenant));
@@ -40,7 +42,7 @@ export async function POST(request: Request) {
     const result = await registry.run(
       call.name,
       call.args ?? {},
-      toolContext(rt, sessionId, hashIp(requestIp(request))),
+      toolContext(rt, sessionId, hashIp(requestIp(request)), origin),
     );
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {

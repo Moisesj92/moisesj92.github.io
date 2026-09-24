@@ -16,7 +16,7 @@ export interface TenantRuntime {
 }
 
 /** Contexto con el que corre un tool en una petición concreta. */
-export function toolContext(rt: TenantRuntime, sessionId: string, ipHash: string): ToolContext {
+export function toolContext(rt: TenantRuntime, sessionId: string, ipHash: string, origin?: string): ToolContext {
   return {
     tenant: rt.config,
     retriever: rt.retriever,
@@ -24,6 +24,7 @@ export function toolContext(rt: TenantRuntime, sessionId: string, ipHash: string
     store: getMessageStore(),
     sessionId,
     ipHash,
+    origin,
   };
 }
 

@@ -3,6 +3,8 @@
 import { useCallback, useState } from "react";
 import type { ToolResult } from "@/core/types";
 import type { TranscriptLine } from "./use-voice-session";
+import { track, trackToolResult } from "./analytics";
+import { getOrigin } from "./origin";
 import { useUiEffects } from "./use-ui-effects";
 
 interface ChatResponse {
@@ -59,7 +61,7 @@ export function useTextSession(tenant?: string) {
           res = await fetch("/api/chat", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ tenant, sessionId, history, message: text }),
+            body: JSON.stringify({ tenant, sessionId, history, message: text, origin: getOrigin() }),
           });
         } catch {
           throw new Error("Sin conexión. Revisa tu red e inténtalo de nuevo.");
@@ -67,8 +69,13 @@ export function useTextSession(tenant?: string) {
         const body = (await res.json().catch(() => ({}))) as Partial<ChatResponse> & { error?: string };
         if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
         const turn = body as ChatResponse;
+        // Solo la primera pregunta de cada conversación: el volumen está en /admin.
+        if (!sessionId) track("pregunta-texto");
         setSessionId(turn.sessionId);
-        for (const step of turn.steps) apply(step.result.ui);
+        for (const step of turn.steps) {
+          apply(step.result.ui);
+          trackToolResult(step.name, step.result.ok);
+        }
         setTranscript((t) => [...t, { role: "agent", text: turn.text, sources: turn.sources }]);
         // Desglose del tiempo: red, guardián (base de datos), cada llamada al modelo, tools.
         const roundTrip = Math.round(performance.now() - started);

@@ -6,6 +6,7 @@ import { checkAndRecordUsage } from "@/core/guard/usage";
 import { logTurn } from "@/core/observability/turn-log";
 import { getTenantRuntime } from "@/core/runtime";
 import { hashIp, requestIp } from "@/core/session/visitor";
+import { originSchema } from "@/core/observability/origin";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,7 @@ const bodySchema = z.object({
     .max(40)
     .default([]),
   message: z.string().min(1).max(2000),
+  origin: originSchema,
 });
 
 /**
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
   }
-  const { tenant, history, message } = parsed.data;
+  const { tenant, history, message, origin } = parsed.data;
   const sessionId = parsed.data.sessionId ?? crypto.randomUUID();
 
   try {
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
       );
     }
     const started = performance.now();
-    const turn = await runTextTurn(rt, apiKey, history, message, sessionId, ipHash);
+    const turn = await runTextTurn(rt, apiKey, history, message, sessionId, ipHash, origin);
     logTurn({
       channel: "text",
       tenant: rt.config.id,
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
       model: turn.model,
       ms: Math.round(performance.now() - started),
       refused: turn.text.includes(rt.config.refusalPhrase),
+      origin,
     });
     return NextResponse.json(
       { sessionId, ...turn, timing: { ...turn.timing, guardMs, serverMs: Math.round(performance.now() - requestStarted) } },

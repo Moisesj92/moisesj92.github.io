@@ -22,6 +22,8 @@ export interface TurnLog {
   /** tiempo al primer audio de la sesión, solo en el primer turno de voz */
   ttfaMs?: number;
   refused: boolean;
+  /** utm_source con el que llegó la visita, ya validado */
+  origin?: string;
 }
 
 const EMAIL = /[\w.+-]+@[\w-]+(\.[\w-]+)+/g;
@@ -57,6 +59,7 @@ async function persist(r: TurnLog & { user: string; agent: string }): Promise<vo
     ms: r.ms,
     ttfaMs: r.ttfaMs,
     refused: r.refused,
+    origin: r.origin,
   });
   if (Math.random() < PURGE_CHANCE) {
     const n = await store.purge(new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000));
