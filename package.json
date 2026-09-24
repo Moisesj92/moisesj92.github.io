@@ -1,13 +1,14 @@
 {
   "name": "moisesj92-github-io",
   "private": true,
-  "description": "Portafolio estático (GitHub Pages) y agente de voz (Vercel) en un solo workspace.",
+  "description": "Portafolio est\u00e1tico (GitHub Pages) y agente de voz (Vercel) en un solo workspace.",
   "scripts": {
     "dev": "pnpm --filter site dev",
     "dev:agent": "pnpm --filter agent dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "test": "pnpm --filter agent test"
+    "test": "pnpm --filter agent test",
+    "utm": "node scripts/utm.mjs"
   },
   "packageManager": "pnpm@10.28.2"
 }

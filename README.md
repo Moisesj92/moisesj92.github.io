@@ -36,6 +36,22 @@ Un solo `pnpm install` en la raíz instala todo; `pnpm build` construye ambas y 
 - `apps/site/src/images/` — avatar y retrato; `public/images/` — imagen para redes sociales
 - `.github/workflows/pages.yml` — build + deploy a GitHub Pages
 
+## Analítica y enlaces por postulación
+
+Las visitas del portafolio y del agente se miden con [Umami](https://umami.is) autoalojado (fork en [`Moisesj92/umami`](https://github.com/Moisesj92/umami), desplegado en Vercel con su propia base en Neon): sin cookies y sin guardar IPs. Hay dos sitios, *Portafolio* y *Agente*, porque una sesión no cruza de un dominio a otro. El paso de uno a otro se sigue con el evento `cta-agente` y con el `utm_source`, que el portafolio añade a cualquier enlace al agente.
+
+Para saber qué empresa abrió el portafolio, cada postulación lleva su propio enlace:
+
+```bash
+pnpm utm "Acme Corp"                  # → ?utm_source=acme-corp&utm_medium=postulacion
+pnpm utm "Acme Corp" --medio linkedin
+```
+
+- `utm_source`: a quién se envió, normalmente la empresa (slug sin tildes ni espacios).
+- `utm_medium`: por dónde, uno de `postulacion`, `linkedin`, `correo` o `cv`.
+
+Ese origen aparece en el informe de UTM de Umami y, si la visita llega a hablar con el agente, en `/admin` (*Sesiones por origen*) y junto a cada mensaje que deje.
+
 ## Cómo correr en local
 
 ```bash

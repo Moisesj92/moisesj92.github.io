@@ -44,6 +44,11 @@ export async function PrivacyContent({ tenant: tenantId }: { tenant?: string }) 
               modelo usado, latencia, documentos consultados y si la respuesta fue un rechazo.
             </li>
             <li>
+              <strong className="text-zinc-800 dark:text-zinc-100">El origen de la visita</strong>, si el enlace por el que
+              llegaste lo traía: una etiqueta como el nombre de la empresa a la que se envió el enlace. Se guarda junto a la
+              conversación, con el mismo plazo de borrado.
+            </li>
+            <li>
               <strong className="text-zinc-800 dark:text-zinc-100">Un identificador cifrado de tu conexión</strong> (hash con
               sal de la dirección IP, no la IP), solo para limitar abusos. No permite identificarte.
             </li>
@@ -59,6 +64,17 @@ export async function PrivacyContent({ tenant: tenantId }: { tenant?: string }) 
           <p>
             <strong className="text-zinc-800 dark:text-zinc-100">Nunca el audio.</strong> Tu voz se transmite en tiempo real al
             proveedor de voz para transcribirla y responder, y no se almacena en ningún sistema de {name}.
+          </p>
+        </Section>
+
+        <Section title="Estadísticas de visitas">
+          <p>
+            Las visitas se miden con <strong className="text-zinc-800 dark:text-zinc-100">Umami</strong>, una herramienta de
+            código abierto alojada en la misma infraestructura que este asistente, no en un servicio de terceros.{' '}
+            <strong className="text-zinc-800 dark:text-zinc-100">No usa cookies</strong> ni guarda tu dirección IP: la usa en
+            el momento para estimar país y ciudad, y la descarta. Registra qué páginas se ven y algunas acciones (iniciar una
+            conversación, descargar el CV, dejar un mensaje), nunca lo que dices o escribes. Las estadísticas son agregadas
+            y no permiten identificarte.
           </p>
         </Section>
 

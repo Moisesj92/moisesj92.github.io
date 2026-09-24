@@ -173,3 +173,17 @@ Las decisiones que el plan ya cierra (speech-to-speech, BM25, tools en el servid
 4. **Los cortes de red se reintentan.** Tres corridas completas se perdieron a mitad por `ENOTFOUND`/`ECONNRESET`: diez minutos tirados por algo que no dice nada del agente.
 
 **Consecuencias:** la suite volvió a `pull_request` y pasó 76/76 en CI, con un caso marcado como flaky (el juez devolvió JSON inválido y al repetir pasó) — justo el ruido que el reintento existe para absorber. El costo es una llamada extra por caso fallido y aceptar que un rechazo con la frase correcta no se discute: si el modelo empezara a decir la frase y luego inventar, lo atrapa `invents` o un `not_contains`, no el criterio libre del juez.
+
+## ADR-012 — Analítica con Umami autoalojado y origen por UTM, no por IP
+
+**Fecha:** 2026-09-24 · **Estado:** aceptada
+
+**Contexto:** hacía falta saber quién visita el portafolio, si pasa al agente, dónde se queda y qué enlaces abre. Google Analytics usa cookies: con la Ley 21.719 obligaría a pedir consentimiento en un sitio que hoy no lo necesita, y es mucho más de lo que pide un portafolio.
+
+**Decisión:**
+
+1. **Umami autoalojado**: fork en `Moisesj92/umami`, desplegado en Vercel, con un **proyecto Neon propio**, separado del agente para no compartir cómputo ni el límite de ramas. No usa cookies ni guarda IPs. Hay dos sitios, porque una sesión no cruza de un dominio a otro. En ambos, `data-domains` deja fuera `localhost` y los previews.
+2. **"Quién" se responde con UTM, no con IP.** Cada postulación lleva su enlace (`pnpm utm "Empresa"`). Las herramientas que identifican empresas por IP aciertan poco con reclutadores que trabajan desde casa, y la IP es dato personal.
+3. **El origen se guarda en la base propia.** El portafolio añade el `utm_source` a los enlaces al agente en el momento del clic, y el agente lo guarda en `turns` y `messages`. Umami sabe que alguien de Acme abrió el agente; solo `/admin` sabe **qué preguntó** y si dejó su correo, y eso es lo que vale.
+
+**Consecuencias:** hay una app más que mantener, aunque actualizarla es sincronizar el fork. Los bloqueadores de anuncios se llevan una parte de las visitas; renombrar el script (`/stats`) y el endpoint (`/api/evento`) reduce la pérdida, pero no la elimina. El origen es un dato del visitante que termina en `/admin`, así que se valida con un juego de caracteres cerrado y lo inválido se descarta. `/privacidad` explica qué se mide y que el origen se guarda con la conversación. Con el tráfico de un portafolio los promedios dicen poco: la señal útil es individual (esta empresa descargó el CV, esta otra habló con el agente).
