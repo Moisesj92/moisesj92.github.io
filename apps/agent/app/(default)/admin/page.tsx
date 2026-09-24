@@ -95,6 +95,25 @@ export default async function AdminPage() {
           </dl>
         </Section>
 
+        <Section title="Sesiones por origen">
+          {month.byOrigin.length === 0 ? (
+            <p className="text-sm text-zinc-500">Todavía nada.</p>
+          ) : (
+            <ol className="space-y-2 text-sm">
+              {month.byOrigin.map((o) => (
+                <li key={o.origin} className="flex gap-3">
+                  <span className="w-8 flex-none text-right tabular-nums text-zinc-400">{o.sessions}</span>
+                  <span className="text-zinc-700 dark:text-zinc-300">{o.origin}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <p className="mt-4 text-xs text-zinc-400">
+            El origen es el <code>utm_source</code> del enlace por el que llegó la visita; «directo» son las que
+            llegaron sin él.
+          </p>
+        </Section>
+
         <Section title="Preguntas más frecuentes">
           {month.topQuestions.length === 0 ? (
             <p className="text-sm text-zinc-500">Todavía nada.</p>
@@ -119,7 +138,10 @@ export default async function AdminPage() {
                 <li key={m.id}>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-100">
                     {m.name} · <a href={`mailto:${m.email}`} className="text-teal-500 hover:underline">{m.email}</a>
-                    <span className="ml-2 font-normal text-zinc-400">{m.createdAt.toLocaleString('es-CL')}</span>
+                    <span className="ml-2 font-normal text-zinc-400">
+                      {m.createdAt.toLocaleString('es-CL')}
+                      {m.origin ? ` · origen ${m.origin}` : ''}
+                    </span>
                   </p>
                   <p className="mt-1 text-zinc-600 dark:text-zinc-400">{m.body}</p>
                 </li>
@@ -135,6 +157,7 @@ export default async function AdminPage() {
                 <p className="text-xs text-zinc-400">
                   {t.createdAt.toLocaleString('es-CL')} · {t.channel} · {t.model ?? '—'} · {t.ms ?? '—'} ms
                   {t.refused ? ' · rechazo' : ''} · sesión {t.sessionId.slice(0, 8)}
+                  {t.origin ? ` · origen ${t.origin}` : ''}
                 </p>
                 <p className="mt-1">
                   <span className="font-semibold text-zinc-800 dark:text-zinc-100">Visitante: </span>

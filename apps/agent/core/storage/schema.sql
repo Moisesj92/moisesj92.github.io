@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE INDEX IF NOT EXISTS messages_ip_hash_created_at ON messages (ip_hash, created_at);
 CREATE INDEX IF NOT EXISTS messages_tenant_created_at ON messages (tenant, created_at DESC);
+
+-- Origen de la visita (utm_source). Añadida después: ADD COLUMN IF NOT EXISTS
+-- mantiene el esquema idempotente sobre bases que ya tenían la tabla.
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS origin text;
 CREATE INDEX IF NOT EXISTS messages_session_id ON messages (session_id);
 
 -- Contadores de uso para rate limit por IP y presupuesto diario por tenant.
@@ -44,6 +48,8 @@ CREATE TABLE IF NOT EXISTS turns (
   refused     boolean NOT NULL DEFAULT false,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE turns ADD COLUMN IF NOT EXISTS origin text;
 
 CREATE INDEX IF NOT EXISTS turns_tenant_created_at ON turns (tenant, created_at DESC);
 CREATE INDEX IF NOT EXISTS turns_session_id ON turns (session_id);

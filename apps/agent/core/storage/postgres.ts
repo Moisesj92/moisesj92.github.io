@@ -55,8 +55,8 @@ export class PostgresMessageStore implements MessageStore {
   async save(m: Omit<VisitorMessage, "id" | "createdAt">): Promise<VisitorMessage> {
     await this.ensureSchema();
     const [row] = await this.sql<{ id: string; created_at: Date }[]>`
-      INSERT INTO messages (tenant, session_id, name, email, body, ip_hash)
-      VALUES (${m.tenant}, ${m.sessionId}, ${m.name}, ${m.email}, ${m.body}, ${m.ipHash})
+      INSERT INTO messages (tenant, session_id, name, email, body, ip_hash, origin)
+      VALUES (${m.tenant}, ${m.sessionId}, ${m.name}, ${m.email}, ${m.body}, ${m.ipHash}, ${m.origin ?? null})
       RETURNING id, created_at
     `;
     return { ...m, id: row.id, createdAt: row.created_at };
@@ -83,7 +83,7 @@ export class PostgresMessageStore implements MessageStore {
   async listRecent(tenant: string, limit: number): Promise<VisitorMessage[]> {
     await this.ensureSchema();
     const rows = await this.sql<
-      { id: string; tenant: string; session_id: string; name: string; email: string; body: string; ip_hash: string; created_at: Date }[]
+      { id: string; tenant: string; session_id: string; name: string; email: string; body: string; ip_hash: string; origin: string | null; created_at: Date }[]
     >`SELECT * FROM messages WHERE tenant = ${tenant} ORDER BY created_at DESC LIMIT ${limit}`;
     return rows.map((r) => ({
       id: r.id,
@@ -93,6 +93,7 @@ export class PostgresMessageStore implements MessageStore {
       email: r.email,
       body: r.body,
       ipHash: r.ip_hash,
+      origin: r.origin ?? undefined,
       createdAt: r.created_at,
     }));
   }
@@ -131,9 +132,9 @@ export class PostgresTurnStore implements TurnStore {
   async save(t: TurnRecord): Promise<void> {
     await this.db.ensureSchema();
     await this.db.sql`
-      INSERT INTO turns (tenant, session_id, channel, user_text, agent_text, tools, sources, model, ms, ttfa_ms, refused)
+      INSERT INTO turns (tenant, session_id, channel, user_text, agent_text, tools, sources, model, ms, ttfa_ms, refused, origin)
       VALUES (${t.tenant}, ${t.sessionId}, ${t.channel}, ${t.userText}, ${t.agentText}, ${this.db.sql.json(t.tools)},
-              ${t.sources}, ${t.model ?? null}, ${t.ms ?? null}, ${t.ttfaMs ?? null}, ${t.refused})
+              ${t.sources}, ${t.model ?? null}, ${t.ms ?? null}, ${t.ttfaMs ?? null}, ${t.refused}, ${t.origin ?? null})
     `;
   }
 
@@ -153,6 +154,7 @@ export class PostgresTurnStore implements TurnStore {
         ms: number | null;
         ttfa_ms: number | null;
         refused: boolean;
+        origin: string | null;
         created_at: Date;
       }[]
     >`
@@ -175,6 +177,7 @@ export class PostgresTurnStore implements TurnStore {
       ms: r.ms ?? undefined,
       ttfaMs: r.ttfa_ms ?? undefined,
       refused: r.refused,
+      origin: r.origin ?? undefined,
       createdAt: r.created_at,
     }));
   }

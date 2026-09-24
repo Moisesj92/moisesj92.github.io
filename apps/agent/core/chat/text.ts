@@ -65,9 +65,10 @@ export async function runTextTurn(
   message: string,
   sessionId: string,
   ipHash: string,
+  origin?: string,
 ): Promise<ChatTurn> {
   const { config, registry } = runtime;
-  const ctx = toolContext(runtime, sessionId, ipHash);
+  const ctx = toolContext(runtime, sessionId, ipHash, origin);
   // El SDK reintenta 429/503 por su cuenta con espera exponencial (hasta
   // minutos). Aquí se acota: un reintento corto y timeout por llamada; la
   // cascada de modelos de abajo decide antes de que el visitante se aburra.

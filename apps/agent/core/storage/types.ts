@@ -8,6 +8,8 @@ export interface VisitorMessage {
   body: string;
   /** hash del IP, nunca el IP en claro */
   ipHash: string;
+  /** utm_source con el que llegó la visita, si venía marcada */
+  origin?: string;
   createdAt: Date;
 }
 
@@ -48,6 +50,8 @@ export interface TurnRecord {
   ms?: number;
   ttfaMs?: number;
   refused: boolean;
+  /** utm_source con el que llegó la visita, si venía marcada */
+  origin?: string;
 }
 
 export interface StoredTurn extends TurnRecord {
@@ -66,6 +70,8 @@ export interface TurnStats {
   byChannel: { channel: string; turns: number }[];
   byModel: { model: string; turns: number }[];
   topQuestions: { question: string; count: number }[];
+  /** sesiones distintas por origen de la visita, de más a menos */
+  byOrigin: { origin: string; sessions: number }[];
 }
 
 export interface TurnStore {

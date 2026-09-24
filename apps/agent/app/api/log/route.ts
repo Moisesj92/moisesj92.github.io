@@ -3,6 +3,7 @@ import { z } from "zod";
 import { resolveTenantId, TenantNotFoundError } from "@/core/config/load";
 import { getTenantRuntime } from "@/core/runtime";
 import { logTurn } from "@/core/observability/turn-log";
+import { originSchema } from "@/core/observability/origin";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,7 @@ const bodySchema = z.object({
   sources: z.array(z.string().max(64)).max(20).default([]),
   ms: z.number().optional(),
   ttfaMs: z.number().optional(),
+  origin: originSchema,
 });
 
 /**
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 });
   try {
     const { config } = await getTenantRuntime(resolveTenantId(parsed.data.tenant));
-    const { sessionId, user, agent, tools, sources, ms, ttfaMs } = parsed.data;
+    const { sessionId, user, agent, tools, sources, ms, ttfaMs, origin } = parsed.data;
     logTurn({
       channel: "voice",
       tenant: config.id,
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
       ms,
       ttfaMs,
       refused: agent.includes(config.refusalPhrase),
+      origin,
     });
     return new NextResponse(null, { status: 204 });
   } catch (err) {

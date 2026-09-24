@@ -68,6 +68,7 @@ export const leaveMessage: Tool<z.infer<typeof input>> = {
       email,
       body: texto,
       ipHash: ctx.ipHash,
+      origin: ctx.origin,
     });
     return {
       ok: true,

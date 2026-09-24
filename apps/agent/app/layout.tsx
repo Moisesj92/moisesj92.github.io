@@ -1,4 +1,5 @@
 import { type Metadata } from 'next'
+import Script from 'next/script'
 
 import { Providers } from '@/components/Providers'
 
@@ -19,6 +20,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <div className="flex w-full">{children}</div>
         </Providers>
+        {/* Umami autoalojado: sin cookies ni IPs. data-domains deja fuera localhost y los previews. */}
+        <Script
+          src="https://umami-ivory-one.vercel.app/stats"
+          data-website-id="1e39de10-4e2b-4b91-8918-c77f1b40ed5f"
+          data-domains="voice-agent-flax-six.vercel.app"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )

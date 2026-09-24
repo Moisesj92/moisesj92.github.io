@@ -36,6 +36,8 @@ export interface ToolContext {
   sessionId: string;
   /** hash del IP del visitante; solo lo usa el rate limit */
   ipHash: string;
+  /** utm_source con el que llegó la visita; se guarda junto al mensaje */
+  origin?: string;
 }
 
 /** Tarjeta de proyecto que la UI despliega mientras el agente habla. */

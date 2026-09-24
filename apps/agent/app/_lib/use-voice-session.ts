@@ -13,6 +13,8 @@ import {
   type VoiceProvider,
 } from "@/providers/voice";
 import { useUiEffects } from "./use-ui-effects";
+import { track, trackToolResult } from "./analytics";
+import { getOrigin } from "./origin";
 
 export type SessionState =
   | "idle"
@@ -128,6 +130,7 @@ export function useVoiceSession(tenant?: string) {
         sources,
         ms: t.startedAt ? Math.round(performance.now() - t.startedAt) : undefined,
         ttfaMs: t.first ? ttfa.current ?? undefined : undefined,
+        origin: getOrigin(),
       }),
       keepalive: true,
     }).catch(() => {});
@@ -259,7 +262,7 @@ export function useVoiceSession(tenant?: string) {
       const res = await fetch("/api/tools", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tenant, sessionId: grant.current?.sessionId, call }),
+        body: JSON.stringify({ tenant, sessionId: grant.current?.sessionId, call, origin: getOrigin() }),
       });
       const result = (await res.json()) as ToolResult;
       const ms = Math.round(performance.now() - started);
@@ -267,6 +270,7 @@ export function useVoiceSession(tenant?: string) {
       turn.current.tools.push({ name: call.name, ok: result.ok === true, ms });
       for (const s of result.sources ?? []) turn.current.sources.add(s);
       applyUi(result.ui);
+      trackToolResult(call.name, result.ok === true);
       // El modelo no necesita el efecto de UI.
       const forModel: ToolResult = { ...result };
       delete forModel.ui;
@@ -281,6 +285,7 @@ export function useVoiceSession(tenant?: string) {
         case "connected":
           pushLog("conectado a Gemini Live");
           setState("listening");
+          track("sesion-voz");
           break;
         case "audio":
           if (!firstAudioLogged.current) {
@@ -310,6 +315,7 @@ export function useVoiceSession(tenant?: string) {
           turn.current.tools.push({ name: e.name, ok: e.result.ok, ms: 0 });
           for (const s of e.result.sources ?? []) turn.current.sources.add(s);
           applyUi(e.result.ui);
+          trackToolResult(e.name, e.result.ok);
           break;
         case "agentSpeaking":
           setState((s) => (s === "listening" || s === "speaking" ? (e.speaking ? "speaking" : "listening") : s));
@@ -365,6 +371,7 @@ export function useVoiceSession(tenant?: string) {
     grant.current = local;
     setExpiresAt(null);
     setDegraded("web-speech");
+    track("voz-degradada");
     provider.current = createVoiceProvider("web-speech", { tenant, lang });
     await provider.current.connect(local, onEvent);
   }, [onEvent, tenant]);
