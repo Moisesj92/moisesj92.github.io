@@ -1,7 +1,9 @@
 import { type Metadata } from 'next'
+import Script from 'next/script'
 
 import { Providers } from '@/app/providers'
 import { Layout } from '@/components/Layout'
+import { OriginTracker } from '@/components/OriginTracker'
 import { getDictionary, localePath, locales, type Locale } from '@/i18n'
 import { site } from '@/lib/site'
 
@@ -49,6 +51,14 @@ export function RootLayout({
             <Layout locale={locale}>{children}</Layout>
           </div>
         </Providers>
+        <OriginTracker />
+        {/* Sin cookies ni IPs. data-domains evita contar las visitas de localhost. */}
+        <Script
+          src={site.analytics.src}
+          data-website-id={site.analytics.websiteId}
+          data-domains={site.analytics.domain}
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )

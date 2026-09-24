@@ -93,6 +93,7 @@ export const en: typeof es = {
     rights: 'All rights reserved.',
     photos: 'Photos by',
     on: 'on',
+    analytics: 'This site measures visits anonymously, without cookies.',
   },
   resume: [
     {

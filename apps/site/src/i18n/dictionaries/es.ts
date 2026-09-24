@@ -91,6 +91,7 @@ export const es = {
     rights: 'Todos los derechos reservados.',
     photos: 'Fotos de',
     on: 'en',
+    analytics: 'Este sitio mide las visitas de forma anónima y sin cookies.',
   },
   resume: [
     {

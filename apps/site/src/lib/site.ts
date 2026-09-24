@@ -6,6 +6,12 @@ export const site = {
   linkedin: 'https://www.linkedin.com/in/ajdeveloper',
   voiceAgent: 'https://voice-agent-flax-six.vercel.app/',
   cvPdf: 'https://moisesj92.github.io/cv/Arsenio_Jimenez_CV.pdf',
+  /* Umami autoalojado (Vercel + Neon propio). El website-id es público. */
+  analytics: {
+    src: 'https://umami-ivory-one.vercel.app/stats',
+    websiteId: 'de689ba5-e719-4f8e-a884-c85a90a9c9fc',
+    domain: 'moisesj92.github.io',
+  },
   /* Fotos de la portada (licencia Unsplash; se acredita al autor en el pie). */
   photoCredits: [
     { name: 'Caio Silva', url: 'https://unsplash.com/@caaaaaaaaaio' },
