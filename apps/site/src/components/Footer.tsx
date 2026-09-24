@@ -53,6 +53,7 @@ export function Footer({ locale }: { locale: Locale }) {
                     Unsplash
                   </a>
                 </p>
+                <p className="mt-1 text-xs">{t.footer.analytics}</p>
               </div>
             </div>
           </ContainerInner>

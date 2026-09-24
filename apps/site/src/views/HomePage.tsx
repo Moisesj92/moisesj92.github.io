@@ -128,6 +128,7 @@ function VoiceAgent({ t }: { t: Dictionary }) {
         target="_blank"
         rel="noopener noreferrer"
         className="mt-6 w-full"
+        data-umami-event="cta-agente"
       >
         {t.home.agent.cta}
       </Button>
@@ -178,6 +179,7 @@ function Resume({ t }: { t: Dictionary }) {
         target="_blank"
         rel="noopener noreferrer"
         className="group mt-6 w-full"
+        data-umami-event="descargar-cv"
       >
         {t.home.cvCta}
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
@@ -188,6 +190,8 @@ function Resume({ t }: { t: Dictionary }) {
         rel="noopener noreferrer"
         variant="secondary"
         className="group mt-3 w-full"
+        data-umami-event="linkedin"
+        data-umami-event-lugar="experiencia"
       >
         {t.home.workCta}
       </Button>
@@ -213,16 +217,22 @@ export function HomePage({ locale }: { locale: Locale }) {
               href={site.github}
               aria-label={t.social.github}
               icon={GitHubIcon}
+              data-umami-event="github"
+              data-umami-event-lugar="portada"
             />
             <SocialLink
               href={site.linkedin}
               aria-label={t.social.linkedin}
               icon={LinkedInIcon}
+              data-umami-event="linkedin"
+              data-umami-event-lugar="portada"
             />
             <SocialLink
               href={`mailto:${site.email}`}
               aria-label={t.social.email}
               icon={MailIcon}
+              data-umami-event="correo"
+              data-umami-event-lugar="portada"
             />
           </div>
         </div>

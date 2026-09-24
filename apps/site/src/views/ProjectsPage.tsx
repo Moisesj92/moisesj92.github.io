@@ -39,7 +39,13 @@ export function ProjectsPage({ locale }: { locale: Locale }) {
               />
             </div>
             <h2 className="mt-6 text-base font-semibold text-zinc-800 dark:text-zinc-100">
-              <Card.Link href={project.href} target="_blank" rel="noopener noreferrer">
+              <Card.Link
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-umami-event="proyecto"
+                data-umami-event-nombre={project.name}
+              >
                 {project.name}
               </Card.Link>
             </h2>
