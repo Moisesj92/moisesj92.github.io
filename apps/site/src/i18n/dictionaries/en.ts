@@ -2,10 +2,11 @@ import { type es } from '@/i18n/dictionaries/es'
 
 export const en: typeof es = {
   meta: {
-    title: 'Arsenio Jiménez — Systems Engineer / Full Stack Developer',
+    title: 'Arsenio Jiménez | Systems Engineer & Software Engineer',
     titleTemplate: '%s - Arsenio Jiménez',
     description:
-      'Senior Full-Stack Engineer with 7+ years building complete digital products: e-commerce, real-time systems, SaaS platforms. From idea to production.',
+      'Systems Engineer and Software Engineer with 7+ years. As a full stack engineer I own projects end to end: architecture, backend, frontend and production.',
+    role: 'Systems Engineer · Full stack Software Engineer',
   },
   nav: {
     home: 'Home',
@@ -25,9 +26,9 @@ export const en: typeof es = {
     email: 'Send me an email',
   },
   home: {
-    title: 'Systems Engineer and Full Stack Developer.',
+    title: 'Systems Engineer and full stack Software Engineer.',
     intro:
-      'I’m Arsenio. I build complete digital products — from architecture to deployment. In over 7 years I’ve taken business ideas to production: e-commerce with real payments, real-time access control systems, and internal tools that replace manual processes.',
+      'I’m Arsenio Jiménez, a Systems Engineer by training and a Software Engineer by trade. As a full stack engineer I own complete projects: I understand the problem, design the architecture, build the backend and frontend, and take it to production. In over 7 years I’ve delivered e-commerce with real payments, real-time access control systems, and internal tools that replace manual processes.',
     skillsHeading: 'What I do',
     skills: [
       {
@@ -68,9 +69,11 @@ export const en: typeof es = {
   },
   about: {
     metaTitle: 'About',
-    title: 'I’m Arsenio Jiménez. I build digital products end to end.',
+    metaDescription:
+      'Arsenio Jiménez, Systems Engineer and full stack Software Engineer: background, professional experience, education and languages.',
+    title: 'I’m Arsenio Jiménez, a Systems Engineer and Software Engineer. I own projects end to end.',
     paragraphs: [
-      'I build complete digital products — from architecture to deployment. In over 7 years as a Full-Stack engineer, I’ve taken business ideas to production: e-commerce platforms that process real payments, access control systems that monitor buildings in real time, and internal tools that replace manual processes with automated workflows.',
+      'I’m a Systems Engineer working as a Software Engineer. As a full stack engineer I own complete projects — from architecture to deployment. In over 7 years I’ve taken business ideas to production: e-commerce platforms that process real payments, access control systems that monitor buildings in real time, and internal tools that replace manual processes with automated workflows.',
       'What sets me apart isn’t the list of technologies I know, but what I do with them: understand the business problem, design the right solution (not the most complex one), build it fast, and make sure it scales. I’ve worked solo and on teams, at startups and established companies, always focused on delivering real value to the end user.',
       'I move comfortably between frontend and backend, between relational and NoSQL databases, between REST and GraphQL APIs. I make technical decisions, do code reviews, and get my hands dirty in production when needed.',
     ],

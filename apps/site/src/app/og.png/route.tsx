@@ -2,18 +2,21 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { ImageResponse } from 'next/og'
 
-import { site } from '@/lib/site'
+import { getDictionary } from '@/i18n'
+import { ogImage, site } from '@/lib/site'
 
-export const alt = 'Arsenio Jiménez — Desarrollador Full Stack'
+const t = getDictionary('es')
+
 export const dynamic = 'force-static'
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
 
 /**
  * Vista previa al compartir el enlace (LinkedIn, WhatsApp, X). Se genera
  * en el build: avatar, nombre, rol y dominio sobre la paleta del sitio.
+ * Es un route handler (no `opengraph-image.tsx`) para que el export escriba
+ * `og.png` con extensión: GitHub Pages sirve los archivos sin extensión
+ * como application/octet-stream y las redes no muestran la imagen.
  */
-export default async function OpenGraphImage() {
+export async function GET() {
   const avatar = await readFile(path.join(process.cwd(), 'src/images/avatar.jpg'))
   const avatarSrc = `data:image/jpeg;base64,${avatar.toString('base64')}`
 
@@ -33,8 +36,14 @@ export default async function OpenGraphImage() {
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 20 }}>
           <div style={{ fontSize: 30, color: '#14b8a6', fontWeight: 600, letterSpacing: 1 }}>&lt;AJ/&gt;</div>
           <div style={{ fontSize: 74, fontWeight: 700, color: '#27272a', lineHeight: 1.05, letterSpacing: -2 }}>{site.name}</div>
-          <div style={{ fontSize: 36, color: '#52525b', lineHeight: 1.3 }}>
-            Desarrollador Full Stack · Node.js · React / Next.js · Ruby on Rails · Laravel
+          {/* Formación y rol en líneas separadas para que no se corten a la mitad. */}
+          <div style={{ display: 'flex', flexDirection: 'column', fontSize: 38, color: '#3f3f46', lineHeight: 1.3 }}>
+            {t.meta.role.split(' · ').map((line) => (
+              <div key={line}>{line}</div>
+            ))}
+          </div>
+          <div style={{ fontSize: 28, color: '#52525b', lineHeight: 1.3 }}>
+            Node.js · React / Next.js · Ruby on Rails · Laravel
           </div>
           <div style={{ marginTop: 28, fontSize: 28, color: '#71717a' }}>{site.url.replace(/^https?:\/\//, '')}</div>
         </div>
@@ -48,6 +57,6 @@ export default async function OpenGraphImage() {
         />
       </div>
     ),
-    size,
+    { width: ogImage.width, height: ogImage.height },
   )
 }
