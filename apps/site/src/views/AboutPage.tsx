@@ -7,7 +7,7 @@ import { Container } from '@repo/ui/Container'
 import { Section } from '@repo/ui/Section'
 import { GitHubIcon, LinkedInIcon } from '@/components/SocialIcons'
 import { getDictionary, type Dictionary, type Locale } from '@/i18n'
-import portraitImage from '@/images/portrait.jpg'
+import portraitImage from '@/images/portrait.webp'
 import { site } from '@/lib/site'
 
 function SocialLink({
