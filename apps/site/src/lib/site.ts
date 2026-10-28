@@ -20,3 +20,11 @@ export const site = {
     { name: 'Marvin Meyer', url: 'https://unsplash.com/@marvelous' },
   ],
 }
+
+/** Imagen al compartir (src/app/og.png/route.tsx). */
+export const ogImage = { url: '/og.png', width: 1200, height: 630 }
+
+/** URL absoluta de una ruta del sitio (sitemap, robots, JSON-LD). */
+export function absoluteUrl(path: string) {
+  return new URL(path, site.url).href
+}

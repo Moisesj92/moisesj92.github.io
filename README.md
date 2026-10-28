@@ -1,13 +1,13 @@
 # moisesj92.github.io
 
-Portfolio personal de Arsenio Jimenez (AJ) — desarrollador full stack. Este repo contiene el sitio estático en HTML/CSS, bilingüe (español/inglés), enfocado en proyectos recientes, perfil profesional orientado a resultados, y branding personal.
+Portfolio personal de Arsenio Jimenez (AJ) — Ingeniero de Sistemas y Software Engineer full stack. Este repo contiene el sitio estático en HTML/CSS, bilingüe (español/inglés), enfocado en proyectos recientes, perfil profesional orientado a resultados, y branding personal.
 
 ## Características
 
 - **Diseño:** template [Spotlight](https://tailwindcss.com/plus/templates/spotlight) de Tailwind Plus (Next.js 15 + Tailwind CSS 4), con modo claro/oscuro.
 - **Bilingüe:** español en `/` e inglés en `/en`, con switch ES/EN en el header. Contenido en diccionarios tipados (`src/i18n/dictionaries/`).
 - **Páginas:** Inicio (intro, skills, CTA al asistente de voz, experiencia), Sobre mí (bio, experiencia detallada, educación, idiomas) y Proyectos (preview automático vía Microlink).
-- **SEO / Social:** metadata por idioma (`hreflang`, canonical), Open Graph y Twitter Card con `public/images/avatar2.jpg`.
+- **SEO / Social:** metadata por idioma (`hreflang`, canonical), Open Graph y Twitter Card con `og.png` generado en el build, sitemap, robots y JSON-LD `Person`. Imágenes en WebP.
 - **Deploy:** export estático (`pnpm --filter site build` → `apps/site/out/`) publicado en GitHub Pages por el workflow `pages.yml`.
 
 ## Agente de voz

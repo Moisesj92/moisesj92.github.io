@@ -1,9 +1,11 @@
 export const es = {
   meta: {
-    title: 'Arsenio Jiménez — Ingeniero de Sistemas / Full Stack Developer',
+    title: 'Arsenio Jiménez | Ingeniero de Sistemas y Software Engineer',
     titleTemplate: '%s - Arsenio Jiménez',
     description:
-      'Ingeniero Full-Stack Senior con +7 años construyendo productos digitales completos: e-commerce, sistemas en tiempo real, plataformas SaaS. De la idea a producción.',
+      'Ingeniero de Sistemas y Software Engineer con +7 años. Como full stack me hago cargo de proyectos completos: arquitectura, backend, frontend y producción.',
+    /* Posicionamiento en una línea: formación, rol y alcance. Se reutiliza en la imagen OG y el JSON-LD. */
+    role: 'Ingeniero de Sistemas · Software Engineer full stack',
   },
   nav: {
     home: 'Inicio',
@@ -23,9 +25,9 @@ export const es = {
     email: 'Escribirme por correo',
   },
   home: {
-    title: 'Ingeniero de Sistemas y desarrollador Full Stack.',
+    title: 'Ingeniero de Sistemas y Software Engineer full stack.',
     intro:
-      'Soy Arsenio. Construyo productos digitales completos — desde la arquitectura hasta el deploy. En más de 7 años he llevado ideas de negocio a producción: e-commerce con pagos reales, sistemas de control de acceso en tiempo real y herramientas internas que reemplazan procesos manuales.',
+      'Soy Arsenio Jiménez, Ingeniero de Sistemas de formación y Software Engineer de profesión. Como full stack me hago cargo de proyectos completos: entiendo el problema, diseño la arquitectura, construyo backend y frontend y lo llevo a producción. En más de 7 años he entregado e-commerce con pagos reales, sistemas de control de acceso en tiempo real y herramientas internas que reemplazan procesos manuales.',
     skillsHeading: 'Lo que sé hacer',
     skills: [
       {
@@ -66,9 +68,11 @@ export const es = {
   },
   about: {
     metaTitle: 'Sobre mí',
-    title: 'Soy Arsenio Jiménez. Construyo productos digitales de punta a punta.',
+    metaDescription:
+      'Arsenio Jiménez, Ingeniero de Sistemas y Software Engineer full stack: trayectoria, experiencia profesional, educación e idiomas.',
+    title: 'Soy Arsenio Jiménez, Ingeniero de Sistemas y Software Engineer. Me hago cargo de proyectos de punta a punta.',
     paragraphs: [
-      'Construyo productos digitales completos — desde la arquitectura hasta el deploy. En más de 7 años como ingeniero Full-Stack, he llevado ideas de negocio a producción: plataformas e-commerce que procesan pagos reales, sistemas de control de acceso que monitorean edificios en tiempo real, y herramientas internas que reemplazan procesos manuales por flujos automatizados.',
+      'Soy Ingeniero de Sistemas y trabajo como Software Engineer. Como full stack me hago cargo de proyectos completos — desde la arquitectura hasta el deploy. En más de 7 años he llevado ideas de negocio a producción: plataformas e-commerce que procesan pagos reales, sistemas de control de acceso que monitorean edificios en tiempo real, y herramientas internas que reemplazan procesos manuales por flujos automatizados.',
       'Lo que me diferencia no es la lista de tecnologías que manejo, sino lo que hago con ellas: entender el problema del negocio, diseñar la solución correcta (no la más compleja), construirla rápido y asegurar que escale. He trabajado solo y en equipo, en startups y empresas establecidas, siempre con foco en entregar valor real al usuario final.',
       'Me muevo con comodidad entre frontend y backend, entre bases de datos relacionales y NoSQL, entre APIs REST y GraphQL. Tomo decisiones técnicas, hago code reviews y me ensucio las manos en producción cuando hace falta.',
     ],

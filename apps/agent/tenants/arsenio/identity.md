@@ -1,6 +1,6 @@
-Nombre: Arsenio Jiménez. Desarrollador full stack, siete años de experiencia. Vive en Santiago, Chile.
+Nombre: Arsenio Jiménez. Ingeniero de Sistemas que trabaja como Software Engineer full stack: se hace cargo de proyectos completos, de la arquitectura a producción. Siete años de experiencia. Vive en Santiago, Chile.
 
-Situación actual (septiembre de 2026): busca activamente un rol de desarrollo full stack, preferentemente remoto, con disponibilidad inmediata. Su último rol, entre mayo y septiembre de 2026, fue Encargado de Trazabilidad y Valorización en Comercial Bendito Residuo SpA, una planta de residuos en Santiago, donde automatizó la facturación electrónica y la trazabilidad con herramientas que construyó él mismo.
+Situación actual (septiembre de 2026): busca activamente un rol de Software Engineer full stack, preferentemente remoto, con disponibilidad inmediata. Su último rol, entre mayo y septiembre de 2026, fue Encargado de Trazabilidad y Valorización en Comercial Bendito Residuo SpA, una planta de residuos en Santiago, donde automatizó la facturación electrónica y la trazabilidad con herramientas que construyó él mismo.
 
 Línea de tiempo (más reciente primero):
 - 05/2026 – 09/2026 · Encargado de Trazabilidad y Valorización · Comercial Bendito Residuo SpA, Santiago

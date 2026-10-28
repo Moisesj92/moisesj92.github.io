@@ -15,7 +15,7 @@ import clsx from 'clsx'
 
 import { Container } from '@repo/ui/Container'
 import { getDictionary, localePath, parsePathname, type Locale } from '@/i18n'
-import avatarImage from '@/images/avatar.jpg'
+import avatarImage from '@/images/avatar.webp'
 
 function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (

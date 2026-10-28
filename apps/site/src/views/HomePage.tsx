@@ -7,10 +7,10 @@ import { Photos } from '@/components/Photos'
 import { GitHubIcon, LinkedInIcon } from '@/components/SocialIcons'
 import { getDictionary, type Dictionary, type Locale } from '@/i18n'
 import { site } from '@/lib/site'
-import imageSantiago from '@/images/photos/santiago.jpg'
-import imageEscritorio from '@/images/photos/escritorio.jpg'
-import imageParque from '@/images/photos/parque.jpg'
-import imageEquipo from '@/images/photos/equipo.jpg'
+import imageSantiago from '@/images/photos/santiago.webp'
+import imageEscritorio from '@/images/photos/escritorio.webp'
+import imageParque from '@/images/photos/parque.webp'
+import imageEquipo from '@/images/photos/equipo.webp'
 
 function MailIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
